@@ -1,10 +1,15 @@
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:qemma/features/auth/presentation/views/register_view.dart';
 
 import 'generated/l10n.dart';
 
 void main() {
-  runApp(const QemmaApp());
+  runApp(
+    DevicePreview(enabled: !kReleaseMode, builder: (context) => QemmaApp()),
+  );
 }
 
 class QemmaApp extends StatelessWidget {
@@ -13,6 +18,7 @@ class QemmaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -20,7 +26,8 @@ class QemmaApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      home: Center(child: Text("Hello Graduation Project")),
+      locale: Locale("ar"),
+      home: RegisterView(),
     );
   }
 }
