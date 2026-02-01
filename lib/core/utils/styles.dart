@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 
-
 abstract class Styles {
   static const textStyleRegular36 = TextStyle(
     fontSize: 36,
@@ -32,7 +31,8 @@ abstract class Styles {
   static const textStyleRegular14 = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-  );static const textStyleRegular12 = TextStyle(
+  );
+  static const textStyleRegular12 = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
   );
@@ -44,8 +44,13 @@ abstract class Styles {
     fontSize: 24,
     fontWeight: FontWeight.w400,
   );
-
+  static const textStyleBold18 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+  );static const textStyleBold10 = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.bold,
+  );
 }
 
 const TextStyle textStyle = TextStyle();
-
