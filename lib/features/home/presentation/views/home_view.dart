@@ -3,6 +3,9 @@ import 'package:qemma/features/all_books_screen/presentation/views/all_books_vie
 import 'package:qemma/features/all_courses_screen/presentation/views/all_courses_view.dart';
 import 'package:qemma/features/exam_generator/presentation/views/exam_generation_screen.dart';
 import 'package:qemma/features/home/presentation/views/widgets/featured_card.dart';
+import 'package:qemma/features/home/presentation/views/widgets/gradient_fab.dart';
+
+import '../../../../core/widgets/bottom_navigation_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -104,7 +107,11 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
+        bottomNavigationBar: ButtonNavigationBar(selectedIndex: 0),
+        floatingActionButton: GradientFab()
+
       ),
     );
   }
 }
+

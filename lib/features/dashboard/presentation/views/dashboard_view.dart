@@ -4,6 +4,9 @@ import 'package:qemma/features/dashboard/presentation/views/widgets/dashboard_he
 import 'package:qemma/features/dashboard/presentation/views/widgets/my_courses_section.dart';
 import 'package:qemma/features/dashboard/presentation/views/widgets/student_statistics_list.dart';
 
+import '../../../../core/widgets/bottom_navigation_bar.dart';
+import '../../../home/presentation/views/widgets/gradient_fab.dart';
+
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
@@ -20,6 +23,8 @@ class DashboardView extends StatelessWidget {
           ],
         ),
       ),
+      bottomNavigationBar: ButtonNavigationBar(selectedIndex: 1),
+      floatingActionButton: GradientFab(),
     );
   }
 }

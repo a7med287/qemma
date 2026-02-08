@@ -30,7 +30,7 @@ class QemmaApp extends StatelessWidget {
       ],
       supportedLocales: S.delegate.supportedLocales,
       locale: Locale("ar"),
-      home: DashboardView(),
+      home: LoginView(),
     );
   }
 }
