@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qemma/features/home/presentation/views/widgets/statistics_card.dart';
+import 'package:qemma/features/dashboard/presentation/views/widgets/statistics_card.dart';
 
 
 class HorizontalStatisticsList extends StatelessWidget {

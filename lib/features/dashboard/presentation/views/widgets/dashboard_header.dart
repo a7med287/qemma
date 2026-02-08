@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:qemma/core/utils/app_colors.dart';
 import 'package:qemma/core/utils/app_images.dart';
 import 'package:qemma/core/utils/styles.dart';
-import 'package:qemma/features/home/presentation/views/widgets/notification_icon.dart';
 
-class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+import 'notification_icon.dart';
+
+class DashBoardHeader extends StatelessWidget {
+  const DashBoardHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

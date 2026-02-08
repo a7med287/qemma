@@ -26,7 +26,7 @@ class BackIconWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
-          Icons.arrow_forward_ios_rounded,
+          Icons.arrow_back_ios_new_rounded,
           color: Colors.white,
           size: 20,
         ),
