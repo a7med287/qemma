@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qemma/features/dashboard/presentation/views/dashboard_view.dart';
 import 'package:qemma/features/home/presentation/views/home_view.dart';
-
+import 'package:qemma/features/my_courses/presentation/views/my_courses_screen.dart';
 import '../utils/app_colors.dart';
 
 class ButtonNavigationBar extends StatelessWidget {
@@ -30,6 +30,13 @@ class ButtonNavigationBar extends StatelessWidget {
               MaterialPageRoute(builder: (context) => DashboardView()),
             );
             break;
+
+          case 2:
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MyCoursesScreen()),
+            );
+            break;
         }
       },
       items: [
@@ -38,6 +45,11 @@ class ButtonNavigationBar extends StatelessWidget {
           icon: Icon(Icons.dashboard_rounded),
           label: "لوحة التحكم",
         ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard_rounded),
+          label: "كورساتي",
+        ),
+
       ],
     );
   }

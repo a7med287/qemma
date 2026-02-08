@@ -38,7 +38,7 @@ class _RegisterViewState extends State<RegisterView> {
                         children: [
                           RoleSelector(
                             title: 'ولي أمر',
-                            icon: Icons.people,
+                            icon: Icons.family_restroom,
                             isSelected: selectedRole == 'parent',
                             onTap: () =>
                                 setState(() => selectedRole = 'parent'),
@@ -58,6 +58,14 @@ class _RegisterViewState extends State<RegisterView> {
                             isSelected: selectedRole == 'student',
                             onTap: () =>
                                 setState(() => selectedRole = 'student'),
+                          ),
+                          const SizedBox(width: 12),
+                          RoleSelector(
+                            title: 'مساعد',
+                            icon: Icons.people,
+                            isSelected: selectedRole == 'assistant',
+                            onTap: () =>
+                                setState(() => selectedRole = 'assistant'),
                           ),
                         ],
                       ),

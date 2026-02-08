@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qemma/features/my_courses/presentation/views/my_courses_screen.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/styles.dart';
@@ -23,11 +24,18 @@ class MyCoursesSection extends StatelessWidget {
                 CustomElevationButton(
                   text: "عرض الكل",
                   color: AppColors.primaryColor,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyCoursesScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
-            MyCoursesHorizontalList()
+            MyCoursesHorizontalList(),
           ],
         ),
       ),

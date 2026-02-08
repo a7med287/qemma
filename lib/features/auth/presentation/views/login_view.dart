@@ -7,7 +7,6 @@ import 'package:qemma/features/auth/presentation/views/widgets/dont_have_an_acco
 import 'package:qemma/features/auth/presentation/views/widgets/or_divider.dart';
 import 'package:qemma/features/home/presentation/views/home_view.dart';
 
-import '../../../dashboard/presentation/views/dashboard_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});

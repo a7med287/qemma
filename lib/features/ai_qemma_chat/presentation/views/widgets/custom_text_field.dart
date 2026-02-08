@@ -36,18 +36,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
           prefixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              InkWell(
-                onTap: () {
-                  if (controller.text.trim().isEmpty) return;
-                  widget.onSend(controller.text.trim());
-                  controller.clear();
-                },
-                child: Image.asset(Assets.sendIcon),
-              ),
               Padding(
                 padding: const EdgeInsets.only(right: 16.0, left: 8),
-                child: InkWell(onTap: () {}, child: Image.asset(Assets.microphoneIcon)),
+                child: InkWell(
+                  onTap: () {
+                    if (controller.text.trim().isEmpty) return;
+                    widget.onSend(controller.text.trim());
+                    controller.clear();
+                  },
+                  child: Image.asset(Assets.sendIcon),
+                ),
               ),
+              InkWell(onTap: () {}, child: Image.asset(Assets.microphoneIcon)),
 
             ],
           ),

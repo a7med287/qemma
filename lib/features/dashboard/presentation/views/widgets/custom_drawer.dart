@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qemma/features/ai_qemma_chat/presentation/views/chat_view.dart';
+import 'package:qemma/features/home/presentation/views/home_view.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
+import '../../../../my_courses/presentation/views/my_courses_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -75,13 +78,29 @@ class CustomDrawer extends StatelessWidget {
                     icon: Icons.home,
                     iconColor: AppColors.primaryColor,
                     title: 'الرئيسية',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HomeScreen(),
+                        ),
+                      );
+
+                    },
                   ),
                   _buildMenuItem(
                     icon: Icons.school,
                     iconColor: Colors.purple,
                     title: 'كورساتي',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyCoursesScreen(),
+                        ),
+                      );
+
+                    },
                   ),
                   _buildMenuItem(
                     icon: Icons.quiz,
@@ -99,8 +118,18 @@ class CustomDrawer extends StatelessWidget {
                     icon: Icons.question_answer,
                     iconColor: Colors.orange,
                     title: 'المساعد الذكي',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AiQemmaChatView(),
+                        ),
+                      );
+
+                    },
                   ),
+                  const Divider(),
+
                   _buildMenuItem(
                     icon: Icons.person,
                     iconColor: Colors.deepPurple,

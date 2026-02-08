@@ -31,10 +31,13 @@ class HeaderNotificationSection extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8.0,top: 24),
         child: Row(
           children: [
+            BackIconWidget(),
+            SizedBox(width: 15),
+
             Icon(Icons.notifications, color: Colors.yellow, size: 24),
-            SizedBox(width: 15),
+            SizedBox(width: 8),
             Icon(Icons.bolt, color: Colors.yellow, size: 24),
-            SizedBox(width: 15),
+            SizedBox(width: 8),
             const Text(
               'تنبيهات عاجلة',
               style: TextStyle(
@@ -43,8 +46,6 @@ class HeaderNotificationSection extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Spacer(),
-            BackIconWidget()
           ],
 
         ),
