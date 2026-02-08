@@ -17,7 +17,7 @@ class AlreadyHaveAnAccount extends StatelessWidget {
         ),
         InkWell(
           onTap: () {
-
+            Navigator.pop(context);
           },
           child: Text(
             " تسجيل دخول",

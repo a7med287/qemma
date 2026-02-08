@@ -51,6 +51,10 @@ abstract class Styles {
     fontSize: 10,
     fontWeight: FontWeight.bold,
   );
+  static const textStyleBold20 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
 }
 
 const TextStyle textStyle = TextStyle();

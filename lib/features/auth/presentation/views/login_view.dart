@@ -5,6 +5,7 @@ import 'package:qemma/core/widgets/gradient_text.dart';
 import 'package:qemma/features/auth/presentation/views/widgets/custom_social_button.dart';
 import 'package:qemma/features/auth/presentation/views/widgets/dont_have_an_account.dart';
 import 'package:qemma/features/auth/presentation/views/widgets/or_divider.dart';
+import 'package:qemma/features/home/presentation/views/home_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -48,7 +49,9 @@ class _LoginViewState extends State<LoginView> {
 
                       SizedBox(height: isTablet ? 36 : 24),
 
-                      CustomButton(text: 'تسجيل الدخول', onTap: () {}),
+                      CustomButton(text: 'تسجيل الدخول', onTap: () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeView(),));
+                      }),
                       const SizedBox(height: 24),
                       DontHaveAnAccountWidget(),
                       const SizedBox(height: 24),
