@@ -7,6 +7,7 @@ import 'package:qemma/features/student/data/repositories/student_repository.dart
 import 'package:qemma/features/student/presentation/routes/student_routes.dart';
 import 'package:qemma/features/teacher/data/repositories/teacher_repository.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_analytics_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_create_exam_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_books_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_book_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_course_view.dart';
@@ -116,6 +117,7 @@ class _QemaAppView extends StatelessWidget {
                 TeacherMyCoursesView.routeName: (_) => const TeacherMyCoursesView(),
                 TeacherUploadLessonView.routeName: (_) => const TeacherUploadLessonView(),
                 TeacherSendNotificationView.routeName: (_) => const TeacherSendNotificationView(),
+                TeacherCreateExamView.routeName: (_) => const TeacherCreateExamView(),
                 TeacherBooksView.routeName: (_) => const TeacherBooksView(),
                 TeacherAnalyticsView.routeName: (_) => const TeacherAnalyticsView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
