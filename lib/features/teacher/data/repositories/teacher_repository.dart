@@ -126,6 +126,11 @@ class TeacherRepository {
         return data['isPublished'] ?? false;
       }, 'فشل تغيير حالة الكورس');
 
+  Future<Map<String, dynamic>> getTeacherProfile() => _guard(() async {
+        final res = await _dio.get('/auth/me');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل الملف الشخصي');
+
   Future<List<Map<String, dynamic>>> getNotificationCourses() => _guard(() async {
         final res = await _dio.get('/courses/my');
         final data = unwrapBody(res.data);
@@ -224,4 +229,287 @@ class TeacherRepository {
         });
         return asMap(unwrapBody(res.data));
       }, 'فشل إرسال الإشعار');
+
+  // ── Books ──────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getMyBooks() => _guard(() async {
+        final res = await _dio.get('/books/my');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكتب');
+
+  Future<Map<String, dynamic>> createBook({
+    required String title,
+    required String grade,
+    String description = '',
+    required double price,
+    required bool isPublished,
+    String? coverBase64,
+  }) => _guard(() async {
+        final res = await _dio.post('/books', data: {
+          'title': title.trim(),
+          'grade': grade,
+          'description': description,
+          'price': price,
+          'isPublished': isPublished,
+          if (coverBase64 != null) 'coverBase64': coverBase64,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إضافة الكتاب');
+
+  Future<Map<String, dynamic>> updateBook(String bookId, {
+    required String title,
+    required String grade,
+    String description = '',
+    required double price,
+    required bool isPublished,
+    String? coverBase64,
+  }) => _guard(() async {
+        final res = await _dio.put('/books/$bookId', data: {
+          'title': title.trim(),
+          'grade': grade,
+          'description': description,
+          'price': price,
+          'isPublished': isPublished,
+          if (coverBase64 != null) 'coverBase64': coverBase64,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحديث الكتاب');
+
+  Future<void> deleteBook(String bookId) => _guard(() async {
+        await _dio.delete('/books/$bookId');
+      }, 'فشل حذف الكتاب');
+
+  Future<bool> toggleBookPublish(String bookId) => _guard(() async {
+        final res = await _dio.patch('/books/$bookId/publish');
+        final data = asMap(unwrapBody(res.data));
+        return data['isPublished'] ?? false;
+      }, 'فشل تغيير حالة الكتاب');
+
+  // ── Analytics ──────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getAnalytics() => _guard(() async {
+        final res = await _dio.get('/analytics/teacher');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل التقارير');
+
+  // ── Exams ──────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getTeacherExams() => _guard(() async {
+        final res = await _dio.get('/exams/teacher');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الاختبارات');
+
+  Future<Map<String, dynamic>> createExam({
+    required String title,
+    required String courseId,
+    required int duration,
+    required int totalMarks,
+    required int passScore,
+    required List<Map<String, dynamic>> questions,
+    String? description,
+    bool isPublished = false,
+  }) => _guard(() async {
+        final res = await _dio.post('/exams', data: {
+          'title': title.trim(),
+          'courseId': courseId,
+          'duration': duration,
+          'totalMarks': totalMarks,
+          'passScore': passScore,
+          'description': description?.trim(),
+          'isPublished': isPublished,
+          'questions': questions,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إنشاء الاختبار');
+
+  Future<void> deleteExam(String examId) => _guard(() async {
+        await _dio.delete('/exams/$examId');
+      }, 'فشل حذف الاختبار');
+
+  Future<Map<String, dynamic>> toggleExamPublish(String examId) => _guard(() async {
+        final res = await _dio.patch('/exams/$examId/publish');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تغيير حالة الاختبار');
+
+  Future<List<Map<String, dynamic>>> getExamAttempts(String examId) => _guard(() async {
+        final res = await _dio.get('/exams/$examId/attempts');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل محاولات الاختبار');
+
+  Future<Map<String, dynamic>> gradeAttempt({
+    required String examId,
+    required String attemptId,
+    required Map<String, dynamic> gradeData,
+  }) => _guard(() async {
+        final res = await _dio.patch('/exams/$examId/attempts/$attemptId/grade', data: gradeData);
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تصحيح المحاولة');
+
+  Future<Map<String, dynamic>> autoGradeExam(String examId) => _guard(() async {
+        final res = await _dio.post('/exams/$examId/auto-grade');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل التصحيح الآلي');
+
+  // ── Assignments ────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getTeacherAssignments() => _guard(() async {
+        final res = await _dio.get('/assignments/teacher');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الواجبات');
+
+  Future<Map<String, dynamic>> createAssignment({
+    required String title,
+    required String courseId,
+    required String dueDate,
+    String? description,
+    int? totalMarks,
+    String? filePath,
+  }) => _guard(() async {
+        final formData = FormData.fromMap({
+          'title': title.trim(),
+          'courseId': courseId,
+          'dueDate': dueDate,
+          if (description != null && description.isNotEmpty) 'description': description,
+          if (totalMarks != null) 'totalMarks': totalMarks.toString(),
+        });
+        if (filePath != null) {
+          formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath)));
+        }
+        final res = await _dio.post('/assignments', data: formData);
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إنشاء الواجب');
+
+  Future<void> deleteAssignment(String assignmentId) => _guard(() async {
+        await _dio.delete('/assignments/$assignmentId');
+      }, 'فشل حذف الواجب');
+
+  Future<List<Map<String, dynamic>>> getSubmissions(String assignmentId) => _guard(() async {
+        final res = await _dio.get('/assignments/$assignmentId/submissions');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل تسليمات الواجب');
+
+  Future<Map<String, dynamic>> gradeSubmission({
+    required String assignmentId,
+    required String submissionId,
+    required int score,
+    String? feedback,
+  }) => _guard(() async {
+        final res = await _dio.patch('/assignments/$assignmentId/submissions/$submissionId/grade', data: {
+          'score': score,
+          if (feedback != null) 'feedback': feedback,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تصحيح التسليم');
+
+  // ── Contests ───────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getTeacherContests() => _guard(() async {
+        final res = await _dio.get('/contests/teacher');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل المسابقات');
+
+  Future<Map<String, dynamic>> createContest({
+    required String title,
+    required String courseId,
+    required int duration,
+    required int questionCount,
+    required String difficulty,
+    String? description,
+    bool isPublished = false,
+  }) => _guard(() async {
+        final res = await _dio.post('/contests', data: {
+          'title': title.trim(),
+          'courseId': courseId,
+          'duration': duration,
+          'questionCount': questionCount,
+          'difficulty': difficulty,
+          if (description != null) 'description': description.trim(),
+          'isPublished': isPublished,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إنشاء المسابقة');
+
+  Future<void> deleteContest(String contestId) => _guard(() async {
+        await _dio.delete('/contests/$contestId');
+      }, 'فشل حذف المسابقة');
+
+  Future<Map<String, dynamic>> toggleContestPublish(String contestId) => _guard(() async {
+        final res = await _dio.patch('/contests/$contestId/publish');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تغيير حالة المسابقة');
+
+  // ── Live Classes ───────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getTeacherLiveClasses() => _guard(() async {
+        final res = await _dio.get('/live-classes/teacher');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الحصص المباشرة');
+
+  Future<Map<String, dynamic>> createLiveClass({
+    required String title,
+    required String courseId,
+    required String date,
+    required String startTime,
+    String? endTime,
+    String? description,
+    bool isActive = false,
+  }) => _guard(() async {
+        final res = await _dio.post('/live-classes', data: {
+          'title': title.trim(),
+          'courseId': courseId,
+          'date': date,
+          'startTime': startTime,
+          if (endTime != null) 'endTime': endTime,
+          if (description != null) 'description': description.trim(),
+          'isActive': isActive,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إنشاء الحصة المباشرة');
+
+  Future<void> deleteLiveClass(String roomName) => _guard(() async {
+        await _dio.delete('/live-classes/$roomName');
+      }, 'فشل حذف الحصة المباشرة');
+
+  // ── Chats ──────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getTeacherChats() => _guard(() async {
+        final res = await _dio.get('/chats/teacher');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل المحادثات');
+
+  Future<List<Map<String, dynamic>>> getChatMessages(String chatId) => _guard(() async {
+        final res = await _dio.get('/chats/$chatId/messages');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الرسائل');
+
+  Future<Map<String, dynamic>> sendChatMessage({
+    required String chatId,
+    required String message,
+  }) => _guard(() async {
+        final res = await _dio.post('/chats/$chatId/messages', data: {
+          'message': message.trim(),
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إرسال الرسالة');
+
+  // ── Notifications (teacher sent list) ──────────────────────────
+
+  Future<List<Map<String, dynamic>>> getSentNotifications() => _guard(() async {
+        final res = await _dio.get('/notifications/sent');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الإشعارات المرسلة');
+
+  Future<void> deleteSentNotification(String notificationId) => _guard(() async {
+        await _dio.delete('/notifications/$notificationId');
+      }, 'فشل حذف الإشعار');
 }

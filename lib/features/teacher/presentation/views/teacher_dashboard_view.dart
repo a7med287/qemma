@@ -7,10 +7,11 @@ import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
+import 'teacher_books_view.dart';
 import 'teacher_create_course_view.dart';
 import 'teacher_my_courses_view.dart';
-import 'teacher_upload_lesson_view.dart';
 import 'teacher_send_notification_view.dart';
+import 'teacher_upload_lesson_view.dart';
 
 
 class TeacherDashboardView extends StatefulWidget {
@@ -344,7 +345,8 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8.r),
-                        onTap: () {},
+                        onTap: () =>
+                        {},
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                           child: Row(
@@ -579,16 +581,16 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
   Widget _buildQuickActionsGrid(BuildContext context) {
     final actions = [
       _QuickAction(title: 'إدارة المسابقات الذهبية', desc: 'أضف أسئلة للمسابقات الذهبية - الصف الثالث', icon: Icons.emoji_events, color: const Color(0xFFF59E0B)),
-      _QuickAction(title: 'مكتبة الكتب', desc: 'إدارة ورفع الكتب الدراسية', icon: Icons.menu_book, color: const Color(0xFF8B5CF6)),
+      _QuickAction(title: 'مكتبة الكتب', desc: 'إدارة ورفع الكتب الدراسية', icon: Icons.menu_book, color: const Color(0xFF8B5CF6), onTap: () => Navigator.pushNamed(context, TeacherBooksView.routeName)),
       _QuickAction(title: 'إرسال إشعار', desc: 'أرسل إشعارات للطلاب', icon: Icons.campaign, color: const Color(0xFFEF4444), onTap: () => Navigator.pushNamed(context, TeacherSendNotificationView.routeName)),
       _QuickAction(title: 'إنشاء كورس جديد', desc: 'أضف كورس جديد لطلابك', icon: Icons.add, color: const Color(0xFF2563EB), onTap: () => Navigator.pushNamed(context, TeacherCreateCourseView.routeName)),
       _QuickAction(title: 'بدء حصة مباشرة', desc: 'ابدأ حصة أونلاين الآن', icon: Icons.videocam, color: const Color(0xFF7C3AED)),
-      _QuickAction(title: 'إضافة اختبار', desc: 'أنشئ اختبار جديد', icon: Icons.assignment, color: const Color(0xFFDB2777)),
+      _QuickAction(title: 'إضافة اختبار', desc: 'أنشئ اختبار جديد', icon: Icons.assignment, color: const Color(0xFFDB2777),),
       _QuickAction(title: 'عرض التقارير', desc: 'تابع أداء الطلاب', icon: Icons.bar_chart, color: const Color(0xFF059669)),
       _QuickAction(title: 'كورساتي', desc: 'عرض وإدارة كورساتك', icon: Icons.menu_book, color: const Color(0xFF06B6D4), onTap: () => Navigator.pushNamed(context, TeacherMyCoursesView.routeName)),
       _QuickAction(title: 'تصحيح الاختبارات', desc: 'راجع وصحح اختبارات الطلاب', icon: Icons.assignment_turned_in, color: const Color(0xFF10B981)),
-      _QuickAction(title: 'إدارة الواجبات', desc: 'أنشئ واجبات وتابع تسليم الطلاب', icon: Icons.assignment, color: const Color(0xFF0891B2)),
-      _QuickAction(title: 'إدارة المحادثات', desc: 'تواصل مع طلابك والمدرس المساعد', icon: Icons.chat_bubble_outline, color: const Color(0xFF2563EB)),
+      _QuickAction(title: 'إدارة الواجبات', desc: 'أنشئ واجبات وتابع تسليم الطلاب', icon: Icons.assignment, color: const Color(0xFF0891B2),),
+      _QuickAction(title: 'إدارة المحادثات', desc: 'تواصل مع طلابك والمدرس المساعد', icon: Icons.chat_bubble_outline, color: const Color(0xFF2563EB),),
       _QuickAction(title: 'رفع درس', desc: 'أضف محتوى تعليمي جديد', icon: Icons.add_circle_outline, color: const Color(0xFFF59E0B), onTap: () => Navigator.pushNamed(context, TeacherUploadLessonView.routeName)),
     ];
 
@@ -747,7 +749,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () {},
+                  onPressed: () => {},
                   child: Text('إضافة حصة',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -771,7 +773,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () {},
+                      onPressed: () => {},
                       child: Text('إضافة حصة',
                           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: const Color(0xFF2563EB))),
                     ),

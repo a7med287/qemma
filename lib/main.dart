@@ -6,12 +6,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qemma/features/student/data/repositories/student_repository.dart';
 import 'package:qemma/features/student/presentation/routes/student_routes.dart';
 import 'package:qemma/features/teacher/data/repositories/teacher_repository.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_books_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_create_book_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_course_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_dashboard_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_edit_book_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_edit_course_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_my_courses_view.dart';
-import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_send_notification_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
 import 'package:qemma/features/teacher/data/models/teacher_models.dart';
 
 import 'constants.dart';
@@ -112,12 +115,17 @@ class _QemaAppView extends StatelessWidget {
                 TeacherMyCoursesView.routeName: (_) => const TeacherMyCoursesView(),
                 TeacherUploadLessonView.routeName: (_) => const TeacherUploadLessonView(),
                 TeacherSendNotificationView.routeName: (_) => const TeacherSendNotificationView(),
+                TeacherBooksView.routeName: (_) => const TeacherBooksView(),
+                TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
               },
               onGenerateRoute: (settings) {
                 final route = StudentRoutes.onGenerateRoute(settings);
                 if (route != null) return route;
                 if (settings.name == TeacherEditCourseView.routeName && settings.arguments is TeacherCourse) {
                   return MaterialPageRoute(builder: (_) => TeacherEditCourseView(course: settings.arguments as TeacherCourse));
+                }
+                if (settings.name == TeacherEditBookView.routeName && settings.arguments is Map<String, dynamic>) {
+                  return MaterialPageRoute(builder: (_) => TeacherEditBookView(book: settings.arguments as Map<String, dynamic>));
                 }
                 return null;
               },
