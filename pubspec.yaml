@@ -35,12 +35,28 @@ dependencies:
     sdk: flutter
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
+  # State management
+  flutter_bloc: ^8.1.5
+
+  # Onboarding dots indicator
+  dots_indicator: ^3.0.0
+
+  # Responsive / adaptive sizing
+  flutter_screenutil: ^5.9.3
+
+  # Persisting theme + onboarding flags
+  shared_preferences: ^2.2.3
+
+  # Arabic-friendly fonts (Cairo)
+  google_fonts: ^6.2.1
+
   cupertino_icons: ^1.0.8
   device_preview: ^1.3.1
-  flutter_svg: ^2.2.3
-  dio: ^5.9.1
-  flutter_bloc: ^9.1.1
-  loading_animation_widget: ^1.3.0
+  equatable: ^2.0.8
+  dio: ^5.9.2
+  clerk_flutter: ^0.0.16-beta
+  fl_chart: ^0.70.2
+  file_picker: ^8.1.7
 
 dev_dependencies:
   flutter_test:
