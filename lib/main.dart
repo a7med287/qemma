@@ -1,10 +1,17 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qemma/features/student/data/repositories/student_repository.dart';
 import 'package:qemma/features/student/presentation/routes/student_routes.dart';
+import 'package:qemma/features/teacher/data/repositories/teacher_repository.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_create_course_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_dashboard_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_edit_course_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_my_courses_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
+import 'package:qemma/features/teacher/data/models/teacher_models.dart';
 
 import 'constants.dart';
 import 'core/cubits/theme_cubit/theme_cubit.dart';
@@ -41,6 +48,7 @@ class QemmaApp extends StatelessWidget {
         RepositoryProvider<ApiClient>.value(value: apiClient),
         RepositoryProvider(create: (_) => AuthService(apiClient)),
         RepositoryProvider(create: (_) => StudentRepository(apiClient)),
+        RepositoryProvider(create: (_) => TeacherRepository(apiClient)),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -73,6 +81,15 @@ class _QemaAppView extends StatelessWidget {
               themeMode: state.themeMode,
               useInheritedMediaQuery: true,
               locale: DevicePreview.locale(context),
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('ar'),
+                Locale('en'),
+              ],
               builder: (context, child) {
                 child = DevicePreview.appBuilder(context, child);
                 return Directionality(
@@ -90,8 +107,18 @@ class _QemaAppView extends StatelessWidget {
                 MainView.routeName: (_) => const MainView(),
                 ...StudentRoutes.routes,
                 TeacherDashboardView.routeName: (_) => const TeacherDashboardView(),
+                TeacherCreateCourseView.routeName: (_) => const TeacherCreateCourseView(),
+                TeacherMyCoursesView.routeName: (_) => const TeacherMyCoursesView(),
+                TeacherUploadLessonView.routeName: (_) => const TeacherUploadLessonView(),
               },
-              onGenerateRoute: StudentRoutes.onGenerateRoute,
+              onGenerateRoute: (settings) {
+                final route = StudentRoutes.onGenerateRoute(settings);
+                if (route != null) return route;
+                if (settings.name == TeacherEditCourseView.routeName && settings.arguments is TeacherCourse) {
+                  return MaterialPageRoute(builder: (_) => TeacherEditCourseView(course: settings.arguments as TeacherCourse));
+                }
+                return null;
+              },
             );
           },
         );

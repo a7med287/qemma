@@ -1,0 +1,166 @@
+class TeacherDashboardData {
+  const TeacherDashboardData({
+    required this.totalStudents,
+    required this.activeCourses,
+    required this.passRate,
+    required this.upcomingSchedules,
+    required this.subjects,
+    required this.teacherName,
+  });
+
+  final int totalStudents;
+  final int activeCourses;
+  final double? passRate;
+  final List<ScheduleItem> upcomingSchedules;
+  final List<String> subjects;
+  final String teacherName;
+}
+
+class TeacherCourse {
+  const TeacherCourse({
+    required this.id,
+    required this.title,
+    this.description,
+    this.category,
+    this.level,
+    this.price = 0,
+    this.duration,
+    this.isPublished = false,
+    this.thumbnail,
+    this.stats,
+  });
+
+  final String id;
+  final String title;
+  final String? description;
+  final String? category;
+  final String? level;
+  final int price;
+  final int? duration;
+  final bool isPublished;
+  final String? thumbnail;
+  final CourseStats? stats;
+
+  factory TeacherCourse.fromJson(Map<String, dynamic> json) {
+    final statsJson = json['stats'] as Map<String, dynamic>?;
+    return TeacherCourse(
+      id: json['_id'] ?? json['id'] ?? '',
+      title: json['title'] ?? '',
+      description: json['description'],
+      category: json['category'],
+      level: json['level'],
+      price: (json['price'] ?? 0) is int ? json['price'] as int : int.tryParse('${json['price'] ?? 0}') ?? 0,
+      duration: json['duration'] is int ? json['duration'] as int : int.tryParse('${json['duration'] ?? ''}'),
+      isPublished: json['isPublished'] ?? false,
+      thumbnail: json['thumbnail'],
+      stats: statsJson != null ? CourseStats.fromJson(statsJson) : null,
+    );
+  }
+
+  TeacherCourse copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? category,
+    String? level,
+    int? price,
+    int? duration,
+    bool? isPublished,
+    String? thumbnail,
+    CourseStats? stats,
+  }) {
+    return TeacherCourse(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      category: category ?? this.category,
+      level: level ?? this.level,
+      price: price ?? this.price,
+      duration: duration ?? this.duration,
+      isPublished: isPublished ?? this.isPublished,
+      thumbnail: thumbnail ?? this.thumbnail,
+      stats: stats ?? this.stats,
+    );
+  }
+}
+
+class CourseStats {
+  const CourseStats({this.enrollments = 0, this.lessons = 0});
+
+  final int enrollments;
+  final int lessons;
+
+  factory CourseStats.fromJson(Map<String, dynamic> json) {
+    return CourseStats(
+      enrollments: json['enrollments'] ?? 0,
+      lessons: json['lessons'] ?? 0,
+    );
+  }
+}
+
+class Lesson {
+  const Lesson({
+    required this.id,
+    required this.courseId,
+    required this.title,
+    this.content,
+    this.summary,
+    this.order = 0,
+    this.isPublished = false,
+    this.videoUrl,
+    this.pdfUrl,
+  });
+
+  final String id;
+  final String courseId;
+  final String title;
+  final String? content;
+  final String? summary;
+  final int order;
+  final bool isPublished;
+  final String? videoUrl;
+  final String? pdfUrl;
+
+  factory Lesson.fromJson(Map<String, dynamic> json) {
+    return Lesson(
+      id: json['_id'] ?? json['id'] ?? '',
+      courseId: json['courseId'] ?? '',
+      title: json['title'] ?? '',
+      content: json['content'],
+      summary: json['summary'],
+      order: json['order'] ?? 0,
+      isPublished: json['isPublished'] ?? false,
+      videoUrl: json['videoUrl'],
+      pdfUrl: json['pdfUrl'],
+    );
+  }
+}
+
+class ScheduleItem {
+  const ScheduleItem({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.startTime,
+    required this.type,
+    this.meetingLink,
+  });
+
+  final String id;
+  final String title;
+  final String date;
+  final String startTime;
+  final String type;
+  final String? meetingLink;
+
+  factory ScheduleItem.fromJson(Map<String, dynamic> json) {
+    return ScheduleItem(
+      id: json['_id'] ?? json['id'] ?? '',
+      title: json['title'] ?? '',
+      date: json['date'] ?? '',
+      startTime: json['startTime'] ?? '',
+      type: json['type'] ?? 'online',
+      meetingLink: json['meetingLink'],
+    );
+  }
+}
