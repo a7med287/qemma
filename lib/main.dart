@@ -11,6 +11,7 @@ import 'package:qemma/features/teacher/presentation/views/teacher_dashboard_view
 import 'package:qemma/features/teacher/presentation/views/teacher_edit_course_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_my_courses_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_send_notification_view.dart';
 import 'package:qemma/features/teacher/data/models/teacher_models.dart';
 
 import 'constants.dart';
@@ -110,6 +111,7 @@ class _QemaAppView extends StatelessWidget {
                 TeacherCreateCourseView.routeName: (_) => const TeacherCreateCourseView(),
                 TeacherMyCoursesView.routeName: (_) => const TeacherMyCoursesView(),
                 TeacherUploadLessonView.routeName: (_) => const TeacherUploadLessonView(),
+                TeacherSendNotificationView.routeName: (_) => const TeacherSendNotificationView(),
               },
               onGenerateRoute: (settings) {
                 final route = StudentRoutes.onGenerateRoute(settings);

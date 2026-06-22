@@ -126,6 +126,19 @@ class TeacherRepository {
         return data['isPublished'] ?? false;
       }, 'فشل تغيير حالة الكورس');
 
+  Future<List<Map<String, dynamic>>> getNotificationCourses() => _guard(() async {
+        final res = await _dio.get('/courses/my');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<List<Map<String, dynamic>>> getNotificationStudents() => _guard(() async {
+        final res = await _dio.get('/notifications/students');
+        final data = unwrapBody(res.data);
+        final students = data['students'] as List? ?? [];
+        return students.map((e) => e as Map<String, dynamic>).toList();
+      }, 'فشل تحميل الطلاب');
+
   Future<void> createLesson({
     required String courseId,
     required String title,
@@ -186,4 +199,29 @@ class TeacherRepository {
         }
         await _dio.put('/courses/$courseId', data: payload);
       }, 'فشل تحديث الكورس');
+
+  Future<Map<String, dynamic>> sendNotification({
+    required String type,
+    required String title,
+    required String message,
+    required String recipient,
+    String? courseId,
+    String? studentId,
+    String? scheduleType,
+    String? scheduledDate,
+    String? scheduledTime,
+  }) => _guard(() async {
+        final res = await _dio.post('/notifications/send', data: {
+          'type': type,
+          'title': title.trim(),
+          'message': message.trim(),
+          'recipient': recipient,
+          if (courseId != null) 'courseId': courseId,
+          if (studentId != null) 'studentId': studentId,
+          if (scheduleType != null) 'scheduleType': scheduleType,
+          if (scheduledDate != null) 'scheduledDate': scheduledDate,
+          if (scheduledTime != null) 'scheduledTime': scheduledTime,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إرسال الإشعار');
 }
