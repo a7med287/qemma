@@ -12,6 +12,7 @@ import 'teacher_create_course_view.dart';
 import 'teacher_my_courses_view.dart';
 import 'teacher_send_notification_view.dart';
 import 'teacher_upload_lesson_view.dart';
+import 'teacher_analytics_view.dart';
 
 
 class TeacherDashboardView extends StatefulWidget {
@@ -586,7 +587,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       _QuickAction(title: 'إنشاء كورس جديد', desc: 'أضف كورس جديد لطلابك', icon: Icons.add, color: const Color(0xFF2563EB), onTap: () => Navigator.pushNamed(context, TeacherCreateCourseView.routeName)),
       _QuickAction(title: 'بدء حصة مباشرة', desc: 'ابدأ حصة أونلاين الآن', icon: Icons.videocam, color: const Color(0xFF7C3AED)),
       _QuickAction(title: 'إضافة اختبار', desc: 'أنشئ اختبار جديد', icon: Icons.assignment, color: const Color(0xFFDB2777),),
-      _QuickAction(title: 'عرض التقارير', desc: 'تابع أداء الطلاب', icon: Icons.bar_chart, color: const Color(0xFF059669)),
+      _QuickAction(title: 'عرض التقارير', desc: 'تابع أداء الطلاب', icon: Icons.bar_chart, color: const Color(0xFF059669), onTap: () => Navigator.pushNamed(context, TeacherAnalyticsView.routeName)),
       _QuickAction(title: 'كورساتي', desc: 'عرض وإدارة كورساتك', icon: Icons.menu_book, color: const Color(0xFF06B6D4), onTap: () => Navigator.pushNamed(context, TeacherMyCoursesView.routeName)),
       _QuickAction(title: 'تصحيح الاختبارات', desc: 'راجع وصحح اختبارات الطلاب', icon: Icons.assignment_turned_in, color: const Color(0xFF10B981)),
       _QuickAction(title: 'إدارة الواجبات', desc: 'أنشئ واجبات وتابع تسليم الطلاب', icon: Icons.assignment, color: const Color(0xFF0891B2),),
