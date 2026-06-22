@@ -15,3 +15,6 @@ const String kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: 'http://localhost:5000/api',
 );
+
+/// Student main shell route (with bottom navigation)
+const String kStudentHomeRoute = '/student/home';

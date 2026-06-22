@@ -12,6 +12,7 @@ import 'core/cubits/theme_cubit/theme_state.dart';
 import 'core/network/api_client.dart';
 import 'core/services/shared_preferences_singleton.dart';
 import 'core/utils/app_theme.dart';
+import 'core/widgets/main_view.dart';
 import 'features/auth/data/services/auth_service.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/auth/presentation/views/login_view.dart';
@@ -86,6 +87,7 @@ class _QemaAppView extends StatelessWidget {
                 OnBoardingView.routeName: (_) => const OnBoardingView(),
                 LoginView.routeName: (_) => const LoginView(),
                 RegisterView.routeName: (_) => const RegisterView(),
+                MainView.routeName: (_) => const MainView(),
                 ...StudentRoutes.routes,
                 TeacherDashboardView.routeName: (_) => const TeacherDashboardView(),
               },

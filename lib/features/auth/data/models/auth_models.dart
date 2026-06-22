@@ -1,4 +1,5 @@
 // lib/features/auth/models/auth_models.dart
+import 'package:qemma/constants.dart';
 
 enum UserRole { student, teacher, assistantTeacher, parent }
 
@@ -73,7 +74,7 @@ class UserModel {
 
   String get dashboardRoute {
     switch (role) {
-      case UserRole.student:          return '/student/dashboard';
+      case UserRole.student:          return kStudentHomeRoute;
       case UserRole.teacher:          return '/teacher/dashboard';
       case UserRole.assistantTeacher: return '/assistant-teacher/dashboard';
       case UserRole.parent:           return '/parent/dashboard';
