@@ -16,7 +16,7 @@ class _ExamsPageOutState extends State<ExamsPageOut> {
   String? _selectedChapter;
   String? _selectedDifficulty;
 
-  static const List<String> steps = ['اختر الصف', 'اختر المادة', 'اختر الفصل', 'اختر الصعوبة'];
+  static const List<String> steps = ['اختر الصف', 'اختر المادة', 'اختر الفصل', 'اختر الصعوبة', 'ملخص الاختبار'];
 
   static const List<String> grades = [
     'الصف الأول الثانوي',
@@ -48,8 +48,6 @@ class _ExamsPageOutState extends State<ExamsPageOut> {
     {'value': 'متوسط', 'label': 'متوسط', 'color': Color(0xFFF59E0B), 'icon': '🤔', 'desc': 'مستوى الامتحانات الشهرية'},
     {'value': 'صعب', 'label': 'صعب', 'color': Color(0xFFEF4444), 'icon': '😰', 'desc': 'مستوى امتحانات الثانوية العامة'},
   ];
-
-  bool get _canStartExam => _selectedGrade != null && _selectedSubject != null && _selectedChapter != null && _selectedDifficulty != null;
 
   @override
   Widget build(BuildContext context) {
@@ -124,150 +122,44 @@ class _ExamsPageOutState extends State<ExamsPageOut> {
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 7,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: const BoxDecoration(
+                                color: Color(0x33DB2777),
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0x33DB2777),
-                                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 40, height: 40,
-                                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                                          child: const Icon(Icons.tune_rounded, color: Colors.white, size: 24),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(steps[_activeStep], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: Colors.white)),
-                                            Text('الخطوة ${_activeStep + 1} من ${steps.length}', style: TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.white.withValues(alpha: 0.9))),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                    width: 40, height: 40,
+                                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                                    child: const Icon(Icons.tune_rounded, color: Colors.white, size: 24),
                                   ),
-                                  const SizedBox(height: 24),
-                                  _buildStepContent(isDark),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(steps[_activeStep], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: Colors.white)),
+                                      Text('الخطوة ${_activeStep + 1} من ${steps.length}', style: TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.white.withValues(alpha: 0.9))),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: double.infinity, padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 36, height: 36,
-                                            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                                            child: const Icon(Icons.quiz_rounded, color: Color(0xFFDB2777), size: 20),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text('ملخص الاختيار', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      _SummaryItem(label: 'الصف الدراسي', value: _selectedGrade ?? 'لم يتم الاختيار', isDark: isDark),
-                                      const SizedBox(height: 12),
-                                      _SummaryItem(label: 'المادة', value: _selectedSubject ?? 'لم يتم الاختيار', isDark: isDark),
-                                      const SizedBox(height: 12),
-                                      _SummaryItem(label: 'الفصل', value: _selectedChapter ?? 'لم يتم الاختيار', isDark: isDark),
-                                      const SizedBox(height: 12),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('مستوى الصعوبة', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))),
-                                          const SizedBox(height: 4),
-                                          if (_selectedDifficulty != null)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: difficultyLevels.firstWhere((d) => d['value'] == _selectedDifficulty)['color'].withValues(alpha: 0.2),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Text(_selectedDifficulty!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: difficultyLevels.firstWhere((d) => d['value'] == _selectedDifficulty)['color'])),
-                                            )
-                                          else
-                                            Text('لم يتم الاختيار', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: _canStartExam ? () {} : null,
-                                    icon: const Icon(Icons.play_arrow_rounded),
-                                    label: const Text('ابدأ الامتحان', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900)),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: ExploreColors.accent,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                      disabledBackgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
-                                      disabledForegroundColor: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                                    ),
-                                  ),
-                                ),
-                                if (!_canStartExam) ...[
-                                  const SizedBox(height: 8),
-                                  Text('يرجى إكمال جميع الخطوات للبدء', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))),
-                                ],
-                                if (_canStartExam) ...[
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    width: double.infinity, padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        _ExamInfoRow(icon: Icons.timer_rounded, text: 'المدة: 60 دقيقة', isDark: isDark),
-                                        const SizedBox(height: 8),
-                                        _ExamInfoRow(icon: Icons.quiz_rounded, text: 'عدد الأسئلة: 20 سؤال', isDark: isDark),
-                                        const SizedBox(height: 8),
-                                        _ExamInfoRow(icon: Icons.emoji_events_rounded, text: 'الدرجة النهائية: 100 درجة', isDark: isDark),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
+                            const SizedBox(height: 24),
+                            _buildStepContent(isDark),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -345,7 +237,12 @@ class _ExamsPageOutState extends State<ExamsPageOut> {
             ...difficultyLevels.map((level) {
               final isSelected = _selectedDifficulty == level['value'];
               return GestureDetector(
-                onTap: () => setState(() => _selectedDifficulty = level['value']),
+                onTap: () {
+                  setState(() {
+                    _selectedDifficulty = level['value'];
+                    _activeStep = 4;
+                  });
+                },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
@@ -380,6 +277,96 @@ class _ExamsPageOutState extends State<ExamsPageOut> {
               );
             }),
             TextButton(onPressed: () => setState(() => _activeStep = 2), child: Text('رجوع', style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))),
+          ],
+        );
+      case 4:
+        return Column(
+          children: [
+            Container(
+              width: double.infinity, padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFDF2F8),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: ExploreColors.accent.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(color: ExploreColors.accent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.quiz_rounded, color: ExploreColors.accent, size: 20),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('ملخص الاختيار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _SummaryItem(label: 'الصف الدراسي', value: _selectedGrade ?? '', isDark: isDark),
+                  const SizedBox(height: 16),
+                  _SummaryItem(label: 'المادة', value: _selectedSubject ?? '', isDark: isDark),
+                  const SizedBox(height: 16),
+                  _SummaryItem(label: 'الفصل', value: _selectedChapter ?? '', isDark: isDark),
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('مستوى الصعوبة', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))),
+                      const SizedBox(height: 4),
+                      if (_selectedDifficulty != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: difficultyLevels.firstWhere((d) => d['value'] == _selectedDifficulty)['color'].withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(_selectedDifficulty!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: difficultyLevels.firstWhere((d) => d['value'] == _selectedDifficulty)['color'])),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity, padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+              ),
+              child: Column(
+                children: [
+                  _ExamInfoRow(icon: Icons.timer_rounded, text: 'المدة: 60 دقيقة', isDark: isDark),
+                  const SizedBox(height: 12),
+                  _ExamInfoRow(icon: Icons.quiz_rounded, text: 'عدد الأسئلة: 20 سؤال', isDark: isDark),
+                  const SizedBox(height: 12),
+                  _ExamInfoRow(icon: Icons.emoji_events_rounded, text: 'الدرجة النهائية: 100 درجة', isDark: isDark),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('ابدأ الامتحان', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ExploreColors.accent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => setState(() => _activeStep = 3),
+              child: Text('رجوع لتغيير الاختيارات', style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+            ),
           ],
         );
       default:
