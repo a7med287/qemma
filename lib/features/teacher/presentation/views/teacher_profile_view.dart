@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../../auth/data/models/auth_models.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
@@ -59,19 +60,19 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
   Future<void> _addPassword() async {
     final password = _passwordCtrl.text.trim();
     if (password.length < 8) {
-      _showSnack('يجب أن تتكون كلمة المرور من 8 أحرف على الأقل');
+      _showSnack('يجب أن تتكون كلمة المرور من 8 أحرف على الأقل', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[A-Z]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على حرف كبير');
+      _showSnack('يجب أن تحتوي كلمة المرور على حرف كبير', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[a-z]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على حرف صغير');
+      _showSnack('يجب أن تحتوي كلمة المرور على حرف صغير', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[0-9]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على رقم');
+      _showSnack('يجب أن تحتوي كلمة المرور على رقم', isError: true);
       return;
     }
     setState(() => _passwordLoading = true);
@@ -85,15 +86,13 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
     } catch (e) {
       if (mounted) {
         setState(() => _passwordLoading = false);
-        _showSnack(e.toString());
+        _showSnack(e.toString(), isError: true);
       }
     }
   }
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, style: const TextStyle(fontFamily: 'Cairo'))),
-    );
+  void _showSnack(String msg, {bool isError = false}) {
+    buildSnackBar(context, msg, isError: isError);
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
 import '../widgets/student_async_body.dart';
@@ -95,17 +96,13 @@ class _SubmitAssignmentViewState extends State<SubmitAssignmentView> {
       final path = result.files.single.path;
       if (path == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر قراءة الملف المختار، حاول مرة أخرى')),
-        );
+        buildSnackBar(context, 'تعذر قراءة الملف المختار، حاول مرة أخرى', isError: true);
         return;
       }
       setState(() => _filePath = path);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حدث خطأ أثناء اختيار الملف')),
-      );
+      buildSnackBar(context, 'حدث خطأ أثناء اختيار الملف', isError: true);
     }
   }
 
@@ -130,13 +127,11 @@ class _SubmitAssignmentViewState extends State<SubmitAssignmentView> {
     } on Failure catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      buildSnackBar(context, e.message, isError: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حدث خطأ غير متوقع أثناء التسليم، حاول مرة أخرى')),
-      );
+      buildSnackBar(context, 'حدث خطأ غير متوقع أثناء التسليم، حاول مرة أخرى', isError: true);
     }
   }
 

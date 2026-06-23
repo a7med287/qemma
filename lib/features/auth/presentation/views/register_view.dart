@@ -10,6 +10,7 @@ import '../../data/models/auth_models.dart';
 import '../../data/services/auth_service.dart';
 import '../cubits/auth_cubit.dart';
 import 'widgets/auth_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 
 const _domain = '@qemma.com';
 
@@ -270,11 +271,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   void _showSnack(String msg, Color color) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, textDirection: TextDirection.rtl,
-          style: const TextStyle(fontFamily: 'Cairo')),
-      backgroundColor: color,
-    ));
+    buildSnackBar(context, msg);
   }
 
   // ════════════════════════════════════════════════════════════

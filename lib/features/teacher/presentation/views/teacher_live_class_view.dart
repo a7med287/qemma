@@ -6,6 +6,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -133,7 +134,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
   // ── Create room ────────────────────────────────────────────────
   Future<void> _handleCreateRoom() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      _showSnackbar('يرجى إدخال عنوان الحصة', Colors.red);
+      buildSnackBar(context, 'يرجى إدخال عنوان الحصة', isError: true);
       return;
     }
     setState(() => _loading = true);
@@ -155,12 +156,12 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
           _step = 'created';
           _loading = false;
         });
-        _showSnackbar('تم إنشاء الحصة بنجاح! 🎉', Colors.green);
+        buildSnackBar(context, 'تم إنشاء الحصة بنجاح! 🎉');
       }
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        _showSnackbar('فشل إنشاء الحصة', Colors.red);
+        buildSnackBar(context, 'فشل إنشاء الحصة', isError: true);
       }
     }
   }
@@ -171,19 +172,13 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
     final micStatus = await Permission.microphone.request();
 
     if (cameraStatus.isPermanentlyDenied || micStatus.isPermanentlyDenied) {
-      _showSnackbar(
-        'يرجى السماح بالكاميرا والميكروفون من إعدادات الجهاز',
-        Colors.red,
-      );
+      buildSnackBar(context, 'يرجى السماح بالكاميرا والميكروفون من إعدادات الجهاز', isError: true);
       await openAppSettings();
       return false;
     }
 
     if (!cameraStatus.isGranted || !micStatus.isGranted) {
-      _showSnackbar(
-        'يرجى السماح بالوصول للكاميرا والميكروفون',
-        Colors.red,
-      );
+      buildSnackBar(context, 'يرجى السماح بالوصول للكاميرا والميكروفون', isError: true);
       return false;
     }
 
@@ -200,7 +195,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
     try {
       await _repo.startLiveRoom(_createdRoom!['id']);
     } catch (_) {
-      _showSnackbar('فشل تنشيط الحصة، حاول مرة أخرى', Colors.red);
+      buildSnackBar(context, 'فشل تنشيط الحصة، حاول مرة أخرى', isError: true);
       return;
     }
 
@@ -227,10 +222,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
       _connectSocket();
     } catch (e) {
       debugPrint('Camera/Mic error: $e');
-      _showSnackbar(
-        'فشل الوصول للكاميرا أو الميكروفون: ${e.toString()}',
-        Colors.red,
-      );
+      buildSnackBar(context, 'فشل الوصول للكاميرا أو الميكروفون: ${e.toString()}', isError: true);
       if (mounted) setState(() => _step = 'created');
     }
   }
@@ -508,7 +500,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
           'roomName': _roomName,
         });
       } catch (e) {
-        _showSnackbar('فشل مشاركة الشاشة', Colors.red);
+        buildSnackBar(context, 'فشل مشاركة الشاشة', isError: true);
       }
     }
   }
@@ -542,10 +534,10 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
       _timer?.cancel();
 
       await _repo.endLiveRoom(_createdRoom!['id']);
-      _showSnackbar('انتهت الحصة بنجاح', Colors.green);
+      buildSnackBar(context, 'انتهت الحصة بنجاح');
       if (mounted) Navigator.maybePop(context, true);
     } catch (_) {
-      _showSnackbar('حدث خطأ أثناء إنهاء الحصة', Colors.red);
+      buildSnackBar(context, 'حدث خطأ أثناء إنهاء الحصة', isError: true);
       if (mounted) Navigator.maybePop(context, true);
     }
   }
@@ -554,7 +546,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
   Future<void> _handleCancelRoom() async {
     try {
       await _repo.cancelLiveRoom(_createdRoom!['id']);
-      _showSnackbar('تم إلغاء الحصة بنجاح', Colors.green);
+      buildSnackBar(context, 'تم إلغاء الحصة بنجاح');
       if (mounted) {
         setState(() {
           _createdRoom = null;
@@ -562,22 +554,12 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
         });
       }
     } catch (_) {
-      _showSnackbar('فشل إلغاء الحصة', Colors.red);
+      buildSnackBar(context, 'فشل إلغاء الحصة', isError: true);
     }
   }
 
   void _copyToClipboard(String text, String label) {
-    _showSnackbar('تم نسخ $label!', Colors.green);
-  }
-
-  void _showSnackbar(String msg, Color color) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(fontFamily: 'Cairo')),
-        backgroundColor: color,
-      ),
-    );
+    buildSnackBar(context, 'تم نسخ $label!');
   }
 
   // ── Theme ──────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/mock/student_mock_data.dart';
 import '../../data/models/student_models.dart';
 import '../widgets/student_shared_widgets.dart';
@@ -46,7 +47,7 @@ class _AskTeacherViewState extends State<AskTeacherView> {
       );
       _questionController.clear();
     });
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال السؤال')));
+    buildSnackBar(context, 'تم إرسال السؤال');
   }
 
   @override

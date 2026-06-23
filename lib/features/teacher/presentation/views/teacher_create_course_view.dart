@@ -6,6 +6,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../data/repositories/teacher_repository.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 
 class TeacherCreateCourseView extends StatefulWidget {
   static const routeName = '/teacher/courses/create';
@@ -38,8 +39,6 @@ class _TeacherCreateCourseViewState extends State<TeacherCreateCourseView> {
   String? _durationError;
   String? _startDateError;
 
-  String? _snackbarMessage;
-  bool _snackbarSuccess = true;
 
   final _levels = [
     'الصف الأول الثانوي',
@@ -163,13 +162,7 @@ class _TeacherCreateCourseViewState extends State<TeacherCreateCourseView> {
   }
 
   void _showSnackbar(String message, bool success) {
-    setState(() {
-      _snackbarMessage = message;
-      _snackbarSuccess = success;
-    });
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) setState(() => _snackbarMessage = null);
-    });
+    buildSnackBar(context, message, isError: !success);
   }
 
   Future<void> _pickThumbnail() async {
@@ -231,35 +224,26 @@ class _TeacherCreateCourseViewState extends State<TeacherCreateCourseView> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB),
-      // Wrapped in a Stack (instead of a plain Column) so the snackbar,
-      // which returns a Positioned widget, has a valid Stack ancestor.
-      // Positioned widgets MUST be direct children of a Stack — placing one
-      // inside a Column throws at runtime as soon as the snackbar appears.
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16.r),
-                  child: Column(
-                    children: [
-                      _buildMainForm(context, subject),
-                      SizedBox(height: 16.h),
-                      _buildSidebar(context, subject),
-                      SizedBox(height: 16.h),
-                      _buildSubmitButton(context),
-                      SizedBox(height: 8.h),
-                      _buildCancelButton(context),
-                      SizedBox(height: 40.h),
-                    ],
-                  ),
-                ),
+          _buildHeader(context),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.r),
+              child: Column(
+                children: [
+                  _buildMainForm(context, subject),
+                  SizedBox(height: 16.h),
+                  _buildSidebar(context, subject),
+                  SizedBox(height: 16.h),
+                  _buildSubmitButton(context),
+                  SizedBox(height: 8.h),
+                  _buildCancelButton(context),
+                  SizedBox(height: 40.h),
+                ],
               ),
-            ],
+            ),
           ),
-          if (_snackbarMessage != null) _buildSnackbar(),
         ],
       ),
     );
@@ -877,34 +861,5 @@ class _TeacherCreateCourseViewState extends State<TeacherCreateCourseView> {
     );
   }
 
-  Widget _buildSnackbar() {
-    return Positioned(
-      bottom: 20.h,
-      right: 16.w,
-      left: 16.w,
-      child: Material(
-        borderRadius: BorderRadius.circular(8.r),
-        elevation: 8,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: _snackbarSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(_snackbarMessage ?? '',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontFamily: 'Cairo', fontSize: 13.sp)),
-              ),
-              GestureDetector(
-                onTap: () => setState(() => _snackbarMessage = null),
-                child: Icon(Icons.close, color: Colors.white, size: 20.sp),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 }

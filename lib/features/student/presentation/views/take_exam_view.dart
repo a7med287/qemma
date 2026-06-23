@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/models/student_model_json.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
@@ -116,9 +117,7 @@ class _TakeExamViewState extends State<TakeExamView> {
   /// can try submitting again, unless time has already run out.
   void _handleSubmitFailure(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تعذر تسليم الامتحان: $message')),
-    );
+    buildSnackBar(context, 'تعذر تسليم الامتحان: $message', isError: true);
     if (_secondsLeft > 0) {
       _startTimer();
     }

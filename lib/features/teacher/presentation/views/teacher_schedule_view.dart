@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -159,17 +160,16 @@ class _TeacherScheduleViewState extends State<TeacherScheduleView> {
           }).toList();
           _editingId = null;
         });
-        _showSnackbar('تم تعديل الحصة بنجاح!', Colors.green);
+        buildSnackBar(context, 'تم تعديل الحصة بنجاح!');
       } else {
         final created = await _repo.createSession(data);
-        _showSnackbar('تم إضافة الحصة بنجاح!', Colors.green);
+        buildSnackBar(context, 'تم إضافة الحصة بنجاح!');
         Navigator.maybePop(context, true);
         return;
       }
       _resetForm();
     } catch (e) {
-      _showSnackbar('حدث خطأ أثناء ${_editingId != null ? 'تعديل' : 'إضافة'} الحصة',
-          Colors.red);
+      buildSnackBar(context, 'حدث خطأ أثناء ${_editingId != null ? 'تعديل' : 'إضافة'} الحصة', isError: true);
     }
     setState(() => _submitting = false);
   }
@@ -204,20 +204,10 @@ class _TeacherScheduleViewState extends State<TeacherScheduleView> {
       await _repo.deleteSession(id);
       setState(() => _sessions.removeWhere(
           (s) => (s['id'] ?? s['_id'] ?? '') == id));
-      _showSnackbar('تم حذف الحصة بنجاح', Colors.green);
+      buildSnackBar(context, 'تم حذف الحصة بنجاح');
     } catch (_) {
-      _showSnackbar('حدث خطأ أثناء الحذف', Colors.red);
+      buildSnackBar(context, 'حدث خطأ أثناء الحذف', isError: true);
     }
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────
-  void _showSnackbar(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(fontFamily: 'Cairo')),
-        backgroundColor: color,
-      ),
-    );
   }
 
   String _formatDate(String? dateStr) {

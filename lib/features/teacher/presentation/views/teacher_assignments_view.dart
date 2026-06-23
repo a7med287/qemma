@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -155,9 +156,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
         isPublished: _formPublished,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إنشاء الواجب بنجاح!')),
-        );
+        buildSnackBar(context, 'تم إنشاء الواجب بنجاح!');
         _resetForm();
         _onTabChanged(1);
       }
@@ -232,9 +231,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
       );
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم تصحيح الواجب')),
-        );
+        buildSnackBar(context, 'تم تصحيح الواجب');
         if (_selectedAssignment != null) {
           _viewDetail(_selectedAssignment!['id'] ?? '');
         }
@@ -247,7 +244,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    buildSnackBar(context, msg, isError: true);
   }
 
   // ── Theme helpers ────────────────────────────────────────────────

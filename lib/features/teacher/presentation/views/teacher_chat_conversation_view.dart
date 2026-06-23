@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -163,11 +164,7 @@ class _TeacherChatConversationViewState
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(fontFamily: 'Cairo')),
-      ),
-    );
+    buildSnackBar(context, msg, isError: true);
   }
 
   // ── Theme ──────────────────────────────────────────────────────

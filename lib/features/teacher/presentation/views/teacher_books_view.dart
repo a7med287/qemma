@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/repositories/teacher_repository.dart';
 import 'teacher_create_book_view.dart';
 import 'teacher_edit_book_view.dart';
@@ -60,12 +61,7 @@ class _TeacherBooksViewState extends State<TeacherBooksView> {
   }
 
   void _showToast(String msg, {bool error = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
-      backgroundColor: error ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-      behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 3),
-    ));
+    buildSnackBar(context, msg, isError: error);
   }
 
   Future<void> _deleteBook() async {

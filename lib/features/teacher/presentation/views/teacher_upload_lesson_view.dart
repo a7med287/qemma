@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -108,13 +109,7 @@ class _TeacherUploadLessonViewState extends State<TeacherUploadLessonView> {
   }
 
   void _showToast(String message, {bool error = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message, style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
-      backgroundColor: error ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 3),
-    ));
+    buildSnackBar(context, message, isError: error);
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/mock/student_mock_data.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
@@ -84,8 +85,7 @@ class _MyCoursesViewState extends State<MyCoursesView>
       });
     } on Failure catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      buildSnackBar(context, e.message, isError: true);
       setState(() => _detailLoading = false);
     }
   }

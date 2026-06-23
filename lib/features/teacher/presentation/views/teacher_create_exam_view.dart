@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -73,11 +74,7 @@ class _TeacherCreateExamViewState extends State<TeacherCreateExamView> {
       final courses = await repo.getNotificationCourses();
       if (mounted) setState(() => _courses = courses);
     } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل تحميل الكورسات')),
-        );
-      }
+      if (mounted) buildSnackBar(context, 'فشل تحميل الكورسات', isError: true);
     } finally {
       if (mounted) setState(() => _loadingCourses = false);
     }
@@ -152,21 +149,14 @@ class _TeacherCreateExamViewState extends State<TeacherCreateExamView> {
         }).toList(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إنشاء الاختبار ونشره بنجاح!')),
-        );
+        buildSnackBar(context, 'تم إنشاء الاختبار ونشره بنجاح!');
         Navigator.maybePop(context);
       }
     } on ServerFailure catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message)));
-      }
+      if (mounted) buildSnackBar(context, e.message, isError: true);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل إنشاء الاختبار. حاول مرة أخرى.')),
-        );
+        buildSnackBar(context, 'فشل إنشاء الاختبار. حاول مرة أخرى.', isError: true);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -174,7 +164,7 @@ class _TeacherCreateExamViewState extends State<TeacherCreateExamView> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    buildSnackBar(context, msg, isError: true);
   }
 
   String _selectedCourseName() {

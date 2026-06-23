@@ -13,6 +13,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../auth/data/models/auth_models.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../widgets/student_async_body.dart';
@@ -84,9 +85,7 @@ class _StudentProfileViewState extends State<StudentProfileView> {
 
   Future<void> _save() async {
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الاسم لا يمكن أن يكون فارغاً')),
-      );
+      buildSnackBar(context, 'الاسم لا يمكن أن يكون فارغاً', isError: true);
       return;
     }
     setState(() => _saving = true);
@@ -101,15 +100,11 @@ class _StudentProfileViewState extends State<StudentProfileView> {
         _editing = false;
         _saving = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم تحديث البيانات بنجاح ✅')),
-      );
+      buildSnackBar(context, 'تم تحديث البيانات بنجاح ✅');
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فشل حفظ التعديلات، حاول مرة أخرى')),
-      );
+      buildSnackBar(context, 'فشل حفظ التعديلات، حاول مرة أخرى', isError: true);
     }
   }
 
@@ -125,15 +120,11 @@ class _StudentProfileViewState extends State<StudentProfileView> {
     final username = _user?.username ?? '';
     if (username.isEmpty) return;
     Clipboard.setData(ClipboardData(text: username));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم نسخ اسم المستخدم 📋')),
-    );
+    buildSnackBar(context, 'تم نسخ اسم المستخدم 📋');
   }
 
   void _changePasswordComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ميزة تغيير كلمة المرور ستتوفر قريباً')),
-    );
+    buildSnackBar(context, 'ميزة تغيير كلمة المرور ستتوفر قريباً');
   }
 
   @override
