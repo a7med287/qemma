@@ -8,6 +8,7 @@ import '../../../../core/utils/app_text_styles.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
+import '../../../auth/presentation/views/login_view.dart';
 import 'teacher_books_view.dart';
 import 'teacher_create_course_view.dart';
 import 'teacher_my_courses_view.dart';
@@ -255,6 +256,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                           Navigator.pushNamed(context, TeacherProfileView.routeName);
                         } else if (value == 'logout') {
                           context.read<AuthCubit>().logout();
+                          Navigator.pushNamedAndRemoveUntil(context, LoginView.routeName, (_) => false);
                         }
                       },
                       itemBuilder: (_) => [
