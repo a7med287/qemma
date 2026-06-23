@@ -588,6 +588,68 @@ class TeacherRepository {
         await _dio.post('/attempts/$attemptId/auto-grade');
       }, 'فشل التصحيح التلقائي');
 
+  // ── Live Classes ───────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getLiveClassCourses() => _guard(() async {
+        final res = await _dio.get('/live-classes/courses');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<Map<String, dynamic>> createLiveRoom(Map<String, dynamic> data) => _guard(() async {
+        final res = await _dio.post('/live-classes', data: {
+          'courseId': data['courseId']?.isNotEmpty == true ? data['courseId'] : null,
+          'title': data['title'],
+          'description': data['description'] ?? '',
+          'maxCapacity': data['maxCapacity'] ?? 100,
+          'scheduledTime': data['scheduledTime'],
+          'enableChat': data['enableChat'] ?? true,
+          'enableScreenShare': data['enableScreenShare'] ?? true,
+          'recordSession': data['recordSession'] ?? false,
+          'waitingRoom': data['waitingRoom'] ?? false,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إنشاء الحصة');
+
+  Future<Map<String, dynamic>> startLiveRoom(String roomId) => _guard(() async {
+        final res = await _dio.patch('/live-classes/$roomId/start');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل بدء الحصة');
+
+  Future<Map<String, dynamic>> endLiveRoom(String roomId) => _guard(() async {
+        final res = await _dio.patch('/live-classes/$roomId/end');
+        return unwrapBody(res.data) as Map<String, dynamic>;
+      }, 'فشل إنهاء الحصة');
+
+  Future<Map<String, dynamic>?> getActiveRoom() => _guard(() async {
+        try {
+          final res = await _dio.get('/live-classes/active');
+          return asMapOrNull(unwrapBody(res.data));
+        } catch (_) {
+          return null;
+        }
+      }, '');
+
+  Future<List<Map<String, dynamic>>> getTeacherRooms({int page = 1, int limit = 10}) => _guard(() async {
+        final res = await _dio.get('/live-classes', queryParameters: {'page': page, 'limit': limit});
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الحصص المسجلة');
+
+  Future<Map<String, dynamic>> getRoomStats() => _guard(() async {
+        final res = await _dio.get('/live-classes/stats');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل الإحصائيات');
+
+  Future<void> cancelLiveRoom(String roomId) => _guard(() async {
+        await _dio.delete('/live-classes/$roomId');
+      }, 'فشل إلغاء الحصة');
+
+  Future<Map<String, dynamic>> joinRoomByCode(String code) => _guard(() async {
+        final res = await _dio.get('/live-classes/join/$code');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل الانضمام للحصة');
+
   // ── Schedule / Sessions ────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getCoursesForSchedule() => _guard(() async {

@@ -18,7 +18,7 @@ import 'teacher_chat_management_view.dart';
 import 'teacher_create_exam_view.dart';
 import 'teacher_grade_exams_view.dart';
 import 'teacher_schedule_view.dart';
-
+import 'teacher_live_class_view.dart';
 
 class TeacherDashboardView extends StatefulWidget {
   static const routeName = '/teacher/dashboard';
@@ -94,13 +94,14 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView> {
         ),
       );
     }
-    return _TeacherDashboardContent(data: _data!);
+    return _TeacherDashboardContent(data: _data!, onRefresh: _loadDashboard);
   }
 }
 
 class _TeacherDashboardContent extends StatefulWidget {
   final TeacherDashboardData data;
-  const _TeacherDashboardContent({required this.data});
+  final VoidCallback onRefresh;
+  const _TeacherDashboardContent({required this.data, required this.onRefresh});
 
   @override
   State<_TeacherDashboardContent> createState() => _TeacherDashboardContentState();
@@ -590,7 +591,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       _QuickAction(title: 'مكتبة الكتب', desc: 'إدارة ورفع الكتب الدراسية', icon: Icons.menu_book, color: const Color(0xFF8B5CF6), onTap: () => Navigator.pushNamed(context, TeacherBooksView.routeName)),
       _QuickAction(title: 'إرسال إشعار', desc: 'أرسل إشعارات للطلاب', icon: Icons.campaign, color: const Color(0xFFEF4444), onTap: () => Navigator.pushNamed(context, TeacherSendNotificationView.routeName)),
       _QuickAction(title: 'إنشاء كورس جديد', desc: 'أضف كورس جديد لطلابك', icon: Icons.add, color: const Color(0xFF2563EB), onTap: () => Navigator.pushNamed(context, TeacherCreateCourseView.routeName)),
-      _QuickAction(title: 'بدء حصة مباشرة', desc: 'ابدأ حصة أونلاين الآن', icon: Icons.videocam, color: const Color(0xFF7C3AED)),
+      _QuickAction(title: 'بدء حصة مباشرة', desc: 'ابدأ حصة أونلاين الآن', icon: Icons.videocam, color: const Color(0xFF7C3AED), onTap: () => Navigator.pushNamed(context, TeacherLiveClassView.routeName)),
       _QuickAction(title: 'إضافة اختبار', desc: 'أنشئ اختبار جديد', icon: Icons.assignment, color: const Color(0xFFDB2777), onTap: () => Navigator.pushNamed(context, TeacherCreateExamView.routeName)),
       _QuickAction(title: 'عرض التقارير', desc: 'تابع أداء الطلاب', icon: Icons.bar_chart, color: const Color(0xFF059669), onTap: () => Navigator.pushNamed(context, TeacherAnalyticsView.routeName)),
       _QuickAction(title: 'كورساتي', desc: 'عرض وإدارة كورساتك', icon: Icons.menu_book, color: const Color(0xFF06B6D4), onTap: () => Navigator.pushNamed(context, TeacherMyCoursesView.routeName)),
@@ -678,7 +679,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
           children: [
             // Expanded(child: _buildRecentActivity(context)),
             // SizedBox(width: 16.w),
-            Expanded(child: _buildSchedulePanel(context, data)),
+            Expanded(child: _SchedulePanel(initialSchedules: data.upcomingSchedules)),
           ],
         ),
       ],
@@ -723,9 +724,47 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
     );
   }
 
-  Widget _buildSchedulePanel(BuildContext context, TeacherDashboardData data) {
+}
+
+// ── Schedule Panel (refreshes independently from the dashboard) ────────────
+class _SchedulePanel extends StatefulWidget {
+  final List<ScheduleItem> initialSchedules;
+  const _SchedulePanel({required this.initialSchedules});
+
+  @override
+  State<_SchedulePanel> createState() => _SchedulePanelState();
+}
+
+class _SchedulePanelState extends State<_SchedulePanel> {
+  late List<ScheduleItem> _schedules;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedules = widget.initialSchedules;
+  }
+
+  Future<void> _refreshSchedules() async {
+    setState(() => _loading = true);
+    try {
+      final repo = context.read<TeacherRepository>();
+      final dashboard = await repo.getDashboard();
+      if (mounted) {
+        setState(() => _schedules = dashboard.upcomingSchedules);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _openSchedule() async {
+    await Navigator.pushNamed(context, TeacherScheduleView.routeName);
+    if (mounted) await _refreshSchedules();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = context.isDark;
-    final schedules = data.upcomingSchedules;
 
     return Container(
       decoration: BoxDecoration(
@@ -740,64 +779,109 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
           children: [
             Row(
               children: [
-                // Expanded + ellipsis prevents the title from pushing the
-                // TextButton past the available width (the previous
-                // spaceBetween Row overflowed by ~22px on narrow panels).
                 Expanded(
                   child: Text('الجدول الزمني',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyles.semiBold16.copyWith(color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E))),
+                      style: TextStyles.semiBold16.copyWith(
+                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E))),
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                if (_loading)
+                  SizedBox(
+                    width: 16.w,
+                    height: 16.w,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: _openSchedule,
+                    child: Text('إضافة حصة',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Cairo',
+                            color: const Color(0xFF2563EB))),
                   ),
-                  onPressed: () => Navigator.pushNamed(context, TeacherScheduleView.routeName),
-                  child: Text('إضافة حصة',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: const Color(0xFF2563EB))),
-                ),
               ],
             ),
-            SizedBox(height: 16,),
-            if (schedules.isEmpty)
+            SizedBox(height: 16.h),
+            if (_loading && _schedules.isEmpty)
+              const Center(child: CircularProgressIndicator())
+            else if (_schedules.isEmpty)
               Center(
                 child: Column(
                   children: [
                     SizedBox(height: 24.h),
-                    Icon(Icons.calendar_today, size: 48.sp, color: isDark ? const Color(0xFF475569) : const Color(0xFFD1D5DB)),
+                    Icon(Icons.calendar_today,
+                        size: 48.sp,
+                        color: isDark ? const Color(0xFF475569) : const Color(0xFFD1D5DB)),
                     SizedBox(height: 8.h),
                     Text('لا توجد حصص مجدولة هذا الأسبوع',
                         textAlign: TextAlign.center,
-                        style: TextStyles.regular13.copyWith(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
+                        style: TextStyles.regular13.copyWith(
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
                     SizedBox(height: 8.h),
                     TextButton(
                       style: TextButton.styleFrom(
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () => Navigator.pushNamed(context, TeacherScheduleView.routeName),
+                      onPressed: _openSchedule,
                       child: Text('إضافة حصة',
-                          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: const Color(0xFF2563EB))),
+                          style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'Cairo',
+                              color: const Color(0xFF2563EB))),
                     ),
                   ],
                 ),
               )
             else
               Column(
-                children: schedules.take(5).map((s) => _buildScheduleItem(context, s)).toList(),
+                children: _schedules
+                    .take(5)
+                    .map((s) => _SchedulePanelItem(item: s))
+                    .toList(),
               ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildScheduleItem(BuildContext context, ScheduleItem item) {
+// ── Schedule Panel Item (extracted to keep build clean) ────────────────────
+class _SchedulePanelItem extends StatelessWidget {
+  final ScheduleItem item;
+  const _SchedulePanelItem({required this.item});
+
+  String _formatDate(String dateStr) {
+    if (dateStr.isEmpty) return '';
+    try {
+      final d = DateTime.parse(dateStr);
+      const months = [
+        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+      ];
+      const days = [
+        'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت',
+      ];
+      return '${days[d.weekday % 7]}، ${d.day} ${months[d.month - 1]}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = context.isDark;
     final isOnline = item.type == 'online';
 
@@ -807,7 +891,8 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+        border: Border.all(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -830,27 +915,41 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                Text(item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 12.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo',
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Cairo',
                       color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                     )),
                 SizedBox(height: 4.h),
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 10.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                    Icon(Icons.calendar_today,
+                        size: 10.sp,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     SizedBox(width: 4.w),
                     Flexible(
                       child: Text(_formatDate(item.date),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 9.sp, fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                          style: TextStyle(
+                              fontSize: 9.sp,
+                              fontFamily: 'Cairo',
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                     ),
                     SizedBox(width: 8.w),
-                    Icon(Icons.access_time, size: 10.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                    Icon(Icons.access_time,
+                        size: 10.sp,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     SizedBox(width: 4.w),
                     Text(item.startTime,
-                        style: TextStyle(fontSize: 9.sp, fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                        style: TextStyle(
+                            fontSize: 9.sp,
+                            fontFamily: 'Cairo',
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                   ],
                 ),
               ],
@@ -864,7 +963,9 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
             ),
             child: Text(isOnline ? 'أونلاين' : 'حضوري',
                 style: TextStyle(
-                  fontSize: 9.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo',
+                  fontSize: 9.sp,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Cairo',
                   color: isOnline ? const Color(0xFF2563EB) : const Color(0xFF059669),
                 )),
           ),
@@ -872,21 +973,9 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       ),
     );
   }
-
-  String _formatDate(String dateStr) {
-    if (dateStr.isEmpty) return '';
-    try {
-      final d = DateTime.parse(dateStr);
-      final months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-      final days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-      return '${days[d.weekday % 7]}، ${d.day} ${months[d.month - 1]}';
-    } catch (_) {
-      return dateStr;
-    }
-  }
 }
 
+// ── Legacy helpers ─────────────────────────────────────────────────────────
 class _StatItem {
   final String title;
   final String value;

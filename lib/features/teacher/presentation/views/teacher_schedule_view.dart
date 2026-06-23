@@ -162,8 +162,9 @@ class _TeacherScheduleViewState extends State<TeacherScheduleView> {
         _showSnackbar('تم تعديل الحصة بنجاح!', Colors.green);
       } else {
         final created = await _repo.createSession(data);
-        setState(() => _sessions = [created, ..._sessions]);
         _showSnackbar('تم إضافة الحصة بنجاح!', Colors.green);
+        Navigator.maybePop(context, true);
+        return;
       }
       _resetForm();
     } catch (e) {
