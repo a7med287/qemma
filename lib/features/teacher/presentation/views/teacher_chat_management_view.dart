@@ -115,7 +115,6 @@ class _TeacherChatManagementViewState
   int get _statsTotalStudents => _allStudents.length;
   int get _statsActiveChats =>
       _sessions.where((s) => (s['messagesCount'] ?? 0) > 0).length;
-  int get _statsCourses => _courses.length;
 
   // ── Theme ──────────────────────────────────────────────────────
   Color _fieldBorder() =>

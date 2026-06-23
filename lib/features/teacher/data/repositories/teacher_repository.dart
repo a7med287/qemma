@@ -555,6 +555,39 @@ class TeacherRepository {
         return asMap(unwrapBody(res.data));
       }, 'فشل إرسال الرسالة');
 
+  // ── Grade Exams ────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getAttemptStats() => _guard(() async {
+        final res = await _dio.get('/attempts/stats');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل إحصائيات الاختبارات');
+
+  Future<Map<String, dynamic>> getAttempts({
+    int page = 1,
+    int limit = 20,
+    String? examId,
+    String? status,
+  }) => _guard(() async {
+        final params = <String, dynamic>{
+          'page': page,
+          'limit': limit,
+        };
+        if (examId != null && examId.isNotEmpty) params['examId'] = examId;
+        if (status != null && status != 'all') params['status'] = status;
+        final res = await _dio.get('/attempts', queryParameters: params);
+        return unwrapBody(res.data) ?? {};
+      }, 'فشل تحميل المحاولات');
+
+  Future<Map<String, dynamic>> getAttemptDetail(String attemptId) => _guard(() async {
+        final res = await _dio.get('/attempts/$attemptId');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل تفاصيل المحاولة');
+
+  Future<void> autoGradeAttempt(String attemptId) => _guard(() async {
+        await _dio.post('/attempts/$attemptId/auto-grade');
+      }, 'فشل التصحيح التلقائي');
+
   // ── Notifications (teacher sent list) ──────────────────────────
 
   Future<List<Map<String, dynamic>>> getSentNotifications() => _guard(() async {

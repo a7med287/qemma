@@ -17,6 +17,7 @@ import 'package:qemma/features/teacher/presentation/views/teacher_create_course_
 import 'package:qemma/features/teacher/presentation/views/teacher_dashboard_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_edit_book_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_edit_course_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_grade_exams_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_my_courses_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_send_notification_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
@@ -126,6 +127,7 @@ class _QemaAppView extends StatelessWidget {
                 TeacherAnalyticsView.routeName: (_) => const TeacherAnalyticsView(),
                 TeacherChatManagementView.routeName: (_) => const TeacherChatManagementView(),
                 TeacherChatConversationView.routeName: (_) => const TeacherChatConversationView(),
+                TeacherGradeExamsView.routeName: (_) => const TeacherGradeExamsView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
               },
               onGenerateRoute: (settings) {
