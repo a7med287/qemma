@@ -100,6 +100,10 @@ class AuthService {
     await clearSession();
   }
 
+  Future<void> addPassword(String password) async {
+    await _dio.post('/auth/add-password', data: {'password': password});
+  }
+
   Future<Map<String, dynamic>> lookupTeacher(String username) async {
     final res = await _dio.get('/auth/assistant/teacher/$username');
     return res.data['data'];

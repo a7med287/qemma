@@ -43,6 +43,8 @@ class UserModel {
   final String? phone;
   final String? authProvider;
   final bool hasPassword;
+  final String? avatar;
+  final List<String> specialties;
 
   const UserModel({
     required this.id,
@@ -55,9 +57,16 @@ class UserModel {
     this.phone,
     this.authProvider,
     this.hasPassword = true,
+    this.avatar,
+    this.specialties = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final teacher = json['teacher'] as Map<String, dynamic>?;
+    final rawSpecialties = teacher?['specialties'];
+    final specialties = (rawSpecialties is List)
+        ? rawSpecialties.map((e) => e.toString()).toList()
+        : <String>[];
     return UserModel(
       id:           json['_id']          ?? json['id'] ?? '',
       name:         json['name']         ?? '',
@@ -69,6 +78,8 @@ class UserModel {
       phone:        json['phone'],
       authProvider: json['authProvider'],
       hasPassword:  json['hasPassword']  ?? true,
+      avatar:       json['avatar'],
+      specialties:  specialties,
     );
   }
 

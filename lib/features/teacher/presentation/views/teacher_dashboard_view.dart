@@ -7,6 +7,7 @@ import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
+import '../../../auth/presentation/cubits/auth_cubit.dart';
 import 'teacher_books_view.dart';
 import 'teacher_create_course_view.dart';
 import 'teacher_my_courses_view.dart';
@@ -20,6 +21,7 @@ import 'teacher_grade_exams_view.dart';
 import 'teacher_schedule_view.dart';
 import 'teacher_live_class_view.dart';
 import 'teacher_notifications_view.dart';
+import 'teacher_profile_view.dart';
 
 class TeacherDashboardView extends StatefulWidget {
   static const routeName = '/teacher/dashboard';
@@ -249,15 +251,15 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                       icon: const Icon(Icons.more_vert, color: Colors.white),
                       style: IconButton.styleFrom(backgroundColor: Colors.white12),
                       onSelected: (value) {
-                        if (value == 'logout') {
-                          // handle logout
-                        } else if (value == 'settings') {
-                          // navigate to settings
+                        if (value == 'profile') {
+                          Navigator.pushNamed(context, TeacherProfileView.routeName);
+                        } else if (value == 'logout') {
+                          context.read<AuthCubit>().logout();
                         }
                       },
                       itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'settings', child: Row(
-                          children: [Icon(Icons.settings, size: 20), SizedBox(width: 8), Text('الإعدادات')],
+                        const PopupMenuItem(value: 'profile', child: Row(
+                          children: [Icon(Icons.person, size: 20), SizedBox(width: 8), Text('الملف الشخصي')],
                         )),
                         const PopupMenuDivider(),
                         const PopupMenuItem(value: 'logout', child: Row(

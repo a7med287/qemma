@@ -127,6 +127,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  // ── Add password ─────────────────────────────────────────────
+  Future<void> addPassword(String password) async {
+    try {
+      await _authService.addPassword(password);
+      final user = await _authService.getCurrentUser();
+      emit(AuthAuthenticated(user));
+    } catch (e) {
+      emit(AuthError(_extractError(e)));
+      rethrow;
+    }
+  }
+
   // ── Logout ────────────────────────────────────────────────────
   Future<void> logout() async {
     await _authService.logout();
