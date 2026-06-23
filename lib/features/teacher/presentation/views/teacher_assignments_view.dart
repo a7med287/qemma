@@ -280,9 +280,9 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
           borderSide:
-              const BorderSide(color: Color(0xFF8B5CF6), width: 2)),
+          const BorderSide(color: Color(0xFF8B5CF6), width: 2)),
       contentPadding:
-          EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
     );
   }
 
@@ -324,7 +324,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                   onPressed: () => Navigator.maybePop(context),
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   style:
-                      IconButton.styleFrom(backgroundColor: Colors.white12),
+                  IconButton.styleFrom(backgroundColor: Colors.white12),
                 ),
                 SizedBox(height: 12.h),
                 Row(
@@ -334,7 +334,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                       height: 44.w,
                       decoration: const BoxDecoration(
                         borderRadius:
-                            BorderRadius.all(Radius.circular(10)),
+                        BorderRadius.all(Radius.circular(10)),
                         color: Colors.white24,
                       ),
                       child: const Icon(Icons.assignment,
@@ -519,7 +519,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
               Expanded(
                 child: OutlinedButton(
                   onPressed:
-                      _submitting ? null : () => Navigator.maybePop(context),
+                  _submitting ? null : () => Navigator.maybePop(context),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                     side: BorderSide(color: _fieldBorder()),
@@ -539,13 +539,13 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                 flex: 2,
                 child: FilledButton.icon(
                   onPressed:
-                      (_submitting || _coursesLoading) ? null : _handleCreate,
+                  (_submitting || _coursesLoading) ? null : _handleCreate,
                   icon: _submitting
                       ? SizedBox(
-                          width: 18.w,
-                          height: 18.w,
-                          child: const CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                      width: 18.w,
+                      height: 18.w,
+                      child: const CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.send, size: 18),
                   label: Text(
                       _submitting ? 'جاري الإنشاء...' : 'إنشاء الواجب',
@@ -581,7 +581,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
         if (mounted && date != null) {
           setState(() {
             _formDueDate =
-                '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
           });
         }
       },
@@ -673,24 +673,24 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
               )),
           SizedBox(height: 12.h),
           ...tips.map((t) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.check_circle,
-                        size: 18, color: Color(0xFF059669)),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Text(t,
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 13.sp,
-                            color: _fieldLabel(),
-                          )),
-                    ),
-                  ],
+            padding: EdgeInsets.only(bottom: 8.h),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.check_circle,
+                    size: 18, color: Color(0xFF059669)),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(t,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 13.sp,
+                        color: _fieldLabel(),
+                      )),
                 ),
-              )),
+              ],
+            ),
+          )),
         ],
       ),
     );
@@ -750,7 +750,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF8B5CF6),
               padding:
-                  EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r)),
             ),
@@ -820,7 +820,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF8B5CF6),
                 padding:
-                    EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
               ),
             ),
           ],
@@ -854,7 +854,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
             height: 4,
             decoration: const BoxDecoration(
               borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(12)),
+              BorderRadius.vertical(top: Radius.circular(12)),
               gradient: LinearGradient(
                   colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)]),
             ),
@@ -947,8 +947,8 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                       Text(
                         dueDate != null
                             ? dueDate.length >= 10
-                                ? dueDate.substring(0, 10)
-                                : dueDate
+                            ? dueDate.substring(0, 10)
+                            : dueDate
                             : '',
                         style: TextStyle(
                           fontFamily: 'Cairo',
@@ -1099,10 +1099,10 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                     shrinkWrap: true,
                     padding: EdgeInsets.all(16.w),
                     itemCount:
-                        (assignment['submissions'] as List?)?.length ?? 0,
+                    (assignment['submissions'] as List?)?.length ?? 0,
                     itemBuilder: (_, i) {
                       final s =
-                          (assignment['submissions'] as List)[i] as Map<String, dynamic>;
+                      (assignment['submissions'] as List)[i] as Map<String, dynamic>;
                       return _buildSubmissionItem(s, isDark, ctx);
                     },
                   ),
@@ -1137,6 +1137,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 radius: 18,
@@ -1150,41 +1151,57 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                 ),
               ),
               SizedBox(width: 8.w),
+              // FIX: Expanded + Column with crossAxisAlignment.start
+              // and explicit overflow on Text widgets prevents the overflow.
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(studentName,
+                    Text(
+                      studentName,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.sp,
+                        color: isDark
+                            ? const Color(0xFFF1F5F9)
+                            : const Color(0xFF1E293B),
+                      ),
+                    ),
+                    if (submittedAt != null)
+                      Text(
+                        submittedAt.length >= 16
+                            ? submittedAt.substring(0, 16)
+                            : submittedAt,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                         style: TextStyle(
                           fontFamily: 'Cairo',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13.sp,
-                          color: isDark
-                              ? const Color(0xFFF1F5F9)
-                              : const Color(0xFF1E293B),
-                        )),
-                    if (submittedAt != null)
-                      Text(submittedAt.length >= 16
-                              ? submittedAt.substring(0, 16)
-                              : submittedAt,
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 11.sp,
-                            color: _fieldLabel(),
-                          )),
+                          fontSize: 11.sp,
+                          color: _fieldLabel(),
+                        ),
+                      ),
                   ],
                 ),
               ),
+              SizedBox(width: 8.w),
+              // Score chip or grade button — no longer inside an unconstrained Row
               if (score != null)
                 Chip(
-                  label: Text('$score/$maxScore',
-                      style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp,
-                          color: (score ?? 0) >= 50
-                              ? const Color(0xFF059669)
-                              : const Color(0xFFEF4444))),
+                  label: Text(
+                    '$score/$maxScore',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11.sp,
+                      color: (score ?? 0) >= 50
+                          ? const Color(0xFF059669)
+                          : const Color(0xFFEF4444),
+                    ),
+                  ),
                   backgroundColor: (score ?? 0) >= 50
                       ? const Color(0xFF059669).withValues(alpha: 0.1)
                       : const Color(0xFFEF4444).withValues(alpha: 0.1),
@@ -1198,16 +1215,19 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                     _openGradeDialog(s);
                   },
                   icon: const Icon(Icons.grade, size: 14),
-                  label: Text('تصحيح',
-                      style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11.sp)),
+                  label: Text(
+                    'تصحيح',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11.sp,
+                    ),
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF8B5CF6),
                     foregroundColor: Colors.white,
                     padding:
-                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   ),
                 ),
             ],
@@ -1220,13 +1240,19 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                   Icon(Icons.description,
                       size: 16, color: const Color(0xFF8B5CF6)),
                   SizedBox(width: 4.w),
-                  Text(fileName ?? 'عرض الملف',
+                  Expanded(
+                    child: Text(
+                      fileName ?? 'عرض الملف',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                       style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 12.sp,
                         color: const Color(0xFF8B5CF6),
                         decoration: TextDecoration.underline,
-                      )),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1254,7 +1280,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
               margin: EdgeInsets.only(top: 6.h),
               padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: Color(0xFF059669).withValues(alpha: 0.1),
+                color: const Color(0xFF059669).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: Text('💬 $feedback',
@@ -1412,10 +1438,10 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                     onPressed: _grading ? null : _handleGrade,
                     icon: _grading
                         ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.grade, size: 18),
                     label: Text('حفظ التصحيح',
                         style: TextStyle(
@@ -1467,7 +1493,7 @@ class _TeacherAssignmentsViewState extends State<TeacherAssignmentsView> {
                 color: _fieldLabel().withValues(alpha: 0.5),
               )),
           dropdownColor:
-              isDark ? const Color(0xFF1E293B) : Colors.white,
+          isDark ? const Color(0xFF1E293B) : Colors.white,
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14.sp,

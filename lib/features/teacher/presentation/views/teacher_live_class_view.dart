@@ -39,6 +39,7 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
   final _localRenderer = RTCVideoRenderer();
   final Map<String, RTCVideoRenderer> _remoteRenderers = {};
   final Map<String, RTCPeerConnection> _peers = {};
+  final Map<String, RTCRtpSender> _screenSenders = {};
   io.Socket? _socket;
   bool _micOn = true;
   bool _camOn = true;
@@ -475,6 +476,12 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
 
   Future<void> _toggleScreenShare() async {
     if (_screenShareOn) {
+      for (final entry in _peers.entries) {
+        try {
+          await entry.value.removeTrack(_screenSenders[entry.key]!);
+        } catch (_) {}
+      }
+      _screenSenders.clear();
       _screenStream?.getTracks().forEach((t) => t.stop());
       _screenStream = null;
       setState(() => _screenShareOn = false);
@@ -492,24 +499,9 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView> {
 
         setState(() => _screenShareOn = true);
 
-        // FIX #2: addTrack then renegotiate with each peer
         for (final entry in _peers.entries) {
-          final userId = entry.key;
-          final pc = entry.value;
-          await pc.addTrack(screenTrack, screenStream);
-          // onRenegotiationNeeded will fire automatically and send a new offer
-          // but if it doesn't trigger (some implementations), do it manually:
-          try {
-            final offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            _socket?.emit('webrtc:offer', {
-              'roomName': _roomName,
-              'targetUserId': userId,
-              'offer': offer.toMap(),
-            });
-          } catch (e) {
-            debugPrint('Screen share offer error for $userId: $e');
-          }
+          final sender = await entry.value.addTrack(screenTrack, screenStream);
+          _screenSenders[entry.key] = sender;
         }
 
         _socket?.emit('live_class:screen_share_started', {
