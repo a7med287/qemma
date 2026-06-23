@@ -361,8 +361,21 @@ class TeacherRepository {
 
   // ── Assignments ────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getTeacherAssignments() => _guard(() async {
-        final res = await _dio.get('/assignments/teacher');
+  Future<List<Map<String, dynamic>>> getTeacherCourses() => _guard(() async {
+        final res = await _dio.get('/assignments/teacher/courses');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<List<Map<String, dynamic>>> getCourseLessons(String courseId) => _guard(() async {
+        final res = await _dio.get('/assignments/teacher/courses/$courseId/lessons');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الدروس');
+
+  Future<List<Map<String, dynamic>>> getTeacherAssignments({String? courseId}) => _guard(() async {
+        final queryParams = courseId != null ? {'courseId': courseId} : null;
+        final res = await _dio.get('/assignments/teacher', queryParameters: queryParams);
         final data = unwrapBody(res.data);
         return asMapList(data);
       }, 'فشل تحميل الواجبات');
@@ -371,21 +384,35 @@ class TeacherRepository {
     required String title,
     required String courseId,
     required String dueDate,
+    String? lessonId,
     String? description,
-    int? totalMarks,
+    int totalMarks = 100,
+    bool isPublished = true,
     String? filePath,
   }) => _guard(() async {
-        final formData = FormData.fromMap({
+        if (filePath != null) {
+          final formData = FormData.fromMap({
+            'title': title.trim(),
+            'courseId': courseId,
+            'dueDate': dueDate,
+            if (lessonId != null) 'lessonId': lessonId,
+            if (description != null && description.isNotEmpty) 'description': description,
+            'maxScore': totalMarks.toString(),
+            'isPublished': isPublished.toString(),
+          });
+          formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath)));
+          final res = await _dio.post('/assignments', data: formData);
+          return asMap(unwrapBody(res.data));
+        }
+        final res = await _dio.post('/assignments', data: {
           'title': title.trim(),
           'courseId': courseId,
           'dueDate': dueDate,
-          if (description != null && description.isNotEmpty) 'description': description,
-          if (totalMarks != null) 'totalMarks': totalMarks.toString(),
+          if (lessonId != null && lessonId.isNotEmpty) 'lessonId': lessonId,
+          if (description != null && description.isNotEmpty) 'description': description.trim(),
+          'maxScore': totalMarks,
+          'isPublished': isPublished,
         });
-        if (filePath != null) {
-          formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath)));
-        }
-        final res = await _dio.post('/assignments', data: formData);
         return asMap(unwrapBody(res.data));
       }, 'فشل إنشاء الواجب');
 
@@ -393,19 +420,17 @@ class TeacherRepository {
         await _dio.delete('/assignments/$assignmentId');
       }, 'فشل حذف الواجب');
 
-  Future<List<Map<String, dynamic>>> getSubmissions(String assignmentId) => _guard(() async {
-        final res = await _dio.get('/assignments/$assignmentId/submissions');
-        final data = unwrapBody(res.data);
-        return asMapList(data);
-      }, 'فشل تحميل تسليمات الواجب');
+  Future<Map<String, dynamic>> getAssignmentDetail(String assignmentId) => _guard(() async {
+        final res = await _dio.get('/assignments/teacher/$assignmentId');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل تفاصيل الواجب');
 
   Future<Map<String, dynamic>> gradeSubmission({
-    required String assignmentId,
     required String submissionId,
     required int score,
     String? feedback,
   }) => _guard(() async {
-        final res = await _dio.patch('/assignments/$assignmentId/submissions/$submissionId/grade', data: {
+        final res = await _dio.patch('/assignments/submissions/$submissionId/grade', data: {
           'score': score,
           if (feedback != null) 'feedback': feedback,
         });
@@ -485,23 +510,46 @@ class TeacherRepository {
 
   // ── Chats ──────────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getTeacherChats() => _guard(() async {
-        final res = await _dio.get('/chats/teacher');
+  Future<List<Map<String, dynamic>>> getChatCourses() => _guard(() async {
+        final res = await _dio.get('/chat/teacher/courses');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<List<Map<String, dynamic>>> getChatStudents() => _guard(() async {
+        final res = await _dio.get('/chat/teacher/students');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الطلاب');
+
+  Future<List<Map<String, dynamic>>> getSessions() => _guard(() async {
+        final res = await _dio.get('/chat/sessions');
         final data = unwrapBody(res.data);
         return asMapList(data);
       }, 'فشل تحميل المحادثات');
 
-  Future<List<Map<String, dynamic>>> getChatMessages(String chatId) => _guard(() async {
-        final res = await _dio.get('/chats/$chatId/messages');
+  Future<Map<String, dynamic>> openSessionWithStudent({
+    required String studentUserId,
+    required String courseId,
+  }) => _guard(() async {
+        final res = await _dio.post('/chat/teacher/open-session', data: {
+          'studentUserId': studentUserId,
+          'courseId': courseId,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل فتح المحادثة');
+
+  Future<List<Map<String, dynamic>>> getChatMessages(String sessionId) => _guard(() async {
+        final res = await _dio.get('/chat/sessions/$sessionId/messages');
         final data = unwrapBody(res.data);
         return asMapList(data);
       }, 'فشل تحميل الرسائل');
 
   Future<Map<String, dynamic>> sendChatMessage({
-    required String chatId,
+    required String sessionId,
     required String message,
   }) => _guard(() async {
-        final res = await _dio.post('/chats/$chatId/messages', data: {
+        final res = await _dio.post('/chat/sessions/$sessionId/messages', data: {
           'message': message.trim(),
         });
         return asMap(unwrapBody(res.data));

@@ -13,6 +13,8 @@ import 'teacher_my_courses_view.dart';
 import 'teacher_send_notification_view.dart';
 import 'teacher_upload_lesson_view.dart';
 import 'teacher_analytics_view.dart';
+import 'teacher_assignments_view.dart';
+import 'teacher_chat_management_view.dart';
 import 'teacher_create_exam_view.dart';
 
 
@@ -591,8 +593,8 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       _QuickAction(title: 'عرض التقارير', desc: 'تابع أداء الطلاب', icon: Icons.bar_chart, color: const Color(0xFF059669), onTap: () => Navigator.pushNamed(context, TeacherAnalyticsView.routeName)),
       _QuickAction(title: 'كورساتي', desc: 'عرض وإدارة كورساتك', icon: Icons.menu_book, color: const Color(0xFF06B6D4), onTap: () => Navigator.pushNamed(context, TeacherMyCoursesView.routeName)),
       _QuickAction(title: 'تصحيح الاختبارات', desc: 'راجع وصحح اختبارات الطلاب', icon: Icons.assignment_turned_in, color: const Color(0xFF10B981)),
-      _QuickAction(title: 'إدارة الواجبات', desc: 'أنشئ واجبات وتابع تسليم الطلاب', icon: Icons.assignment, color: const Color(0xFF0891B2),),
-      _QuickAction(title: 'إدارة المحادثات', desc: 'تواصل مع طلابك والمدرس المساعد', icon: Icons.chat_bubble_outline, color: const Color(0xFF2563EB),),
+      _QuickAction(title: 'إدارة الواجبات', desc: 'أنشئ واجبات وتابع تسليم الطلاب', icon: Icons.assignment, color: const Color(0xFF0891B2), onTap: () => Navigator.pushNamed(context, TeacherAssignmentsView.routeName)),
+      _QuickAction(title: 'إدارة المحادثات', desc: 'تواصل مع طلابك والمدرس المساعد', icon: Icons.chat_bubble_outline, color: const Color(0xFF2563EB), onTap: () => Navigator.pushNamed(context, TeacherChatManagementView.routeName)),
       _QuickAction(title: 'رفع درس', desc: 'أضف محتوى تعليمي جديد', icon: Icons.add_circle_outline, color: const Color(0xFFF59E0B), onTap: () => Navigator.pushNamed(context, TeacherUploadLessonView.routeName)),
     ];
 
@@ -672,8 +674,8 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildRecentActivity(context)),
-            SizedBox(width: 16.w),
+            // Expanded(child: _buildRecentActivity(context)),
+            // SizedBox(width: 16.w),
             Expanded(child: _buildSchedulePanel(context, data)),
           ],
         ),
@@ -759,6 +761,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                 ),
               ],
             ),
+            SizedBox(height: 16,),
             if (schedules.isEmpty)
               Center(
                 child: Column(

@@ -7,8 +7,11 @@ import 'package:qemma/features/student/data/repositories/student_repository.dart
 import 'package:qemma/features/student/presentation/routes/student_routes.dart';
 import 'package:qemma/features/teacher/data/repositories/teacher_repository.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_analytics_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_assignments_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_exam_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_books_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_chat_conversation_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_chat_management_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_book_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_create_course_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_dashboard_view.dart';
@@ -118,8 +121,11 @@ class _QemaAppView extends StatelessWidget {
                 TeacherUploadLessonView.routeName: (_) => const TeacherUploadLessonView(),
                 TeacherSendNotificationView.routeName: (_) => const TeacherSendNotificationView(),
                 TeacherCreateExamView.routeName: (_) => const TeacherCreateExamView(),
+                TeacherAssignmentsView.routeName: (_) => const TeacherAssignmentsView(),
                 TeacherBooksView.routeName: (_) => const TeacherBooksView(),
                 TeacherAnalyticsView.routeName: (_) => const TeacherAnalyticsView(),
+                TeacherChatManagementView.routeName: (_) => const TeacherChatManagementView(),
+                TeacherChatConversationView.routeName: (_) => const TeacherChatConversationView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
               },
               onGenerateRoute: (settings) {
