@@ -63,6 +63,13 @@ class TeacherRepository {
           schedules = schedList.map(ScheduleItem.fromJson).toList();
         } catch (_) {}
 
+        int unreadCount = 0;
+        try {
+          final notifRes = await _dio.get('/notifications/unread-count');
+          final notifData = asMap(unwrapBody(notifRes.data));
+          unreadCount = notifData['unreadCount'] as int? ?? 0;
+        } catch (_) {}
+
         return TeacherDashboardData(
           totalStudents: totalStudents,
           activeCourses: activeCourses,
@@ -70,6 +77,7 @@ class TeacherRepository {
           upcomingSchedules: schedules,
           subjects: subjects,
           teacherName: teacherName,
+          unreadCount: unreadCount,
         );
       }, 'فشل تحميل لوحة تحكم المعلم');
 
@@ -709,4 +717,47 @@ class TeacherRepository {
   Future<void> deleteSentNotification(String notificationId) => _guard(() async {
         await _dio.delete('/notifications/$notificationId');
       }, 'فشل حذف الإشعار');
+
+  // ── Notifications (received) ───────────────────────────────────
+
+  Future<NotificationsPageData> getNotifications({int page = 1, int limit = 20}) =>
+      _guard(() async {
+        final res = await _dio.get('/notifications', queryParameters: {
+          'page': page,
+          'limit': limit,
+        });
+        return NotificationsPageData.fromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل تحميل الإشعارات');
+
+  Future<void> markNotificationRead(String id) => _guard(() async {
+        await _dio.patch('/notifications/$id/read');
+      }, 'فشل تعيين الإشعار كمقروء');
+
+  Future<void> markAllNotificationsRead() => _guard(() async {
+        await _dio.patch('/notifications/read-all');
+      }, 'فشل تعيين الكل كمقروء');
+
+  Future<void> deleteOneNotification(String id) => _guard(() async {
+        await _dio.delete('/notifications/$id');
+      }, 'فشل حذف الإشعار');
+
+  Future<void> deleteAllNotifications() => _guard(() async {
+        await _dio.delete('/notifications');
+      }, 'فشل حذف الإشعارات');
+
+  Future<int> getUnreadCount() => _guard(() async {
+        try {
+          final res = await _dio.get('/notifications/unread-count');
+          final data = asMap(unwrapBody(res.data));
+          return data['unreadCount'] as int? ?? 0;
+        } catch (_) {
+          final res = await _dio.get('/notifications', queryParameters: {'limit': '1'});
+          final data = asMap(unwrapBody(res.data));
+          final notifs = data['notifications'] as List? ?? [];
+          return notifs.where((n) {
+            final m = n as Map<String, dynamic>;
+            return m['isRead'] != true && m['read'] != true;
+          }).length;
+        }
+      }, 'فشل تحميل عدد الإشعارات');
 }

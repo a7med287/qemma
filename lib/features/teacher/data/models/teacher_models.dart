@@ -6,6 +6,7 @@ class TeacherDashboardData {
     required this.upcomingSchedules,
     required this.subjects,
     required this.teacherName,
+    this.unreadCount = 0,
   });
 
   final int totalStudents;
@@ -14,6 +15,7 @@ class TeacherDashboardData {
   final List<ScheduleItem> upcomingSchedules;
   final List<String> subjects;
   final String teacherName;
+  final int unreadCount;
 }
 
 class TeacherCourse {
@@ -161,6 +163,61 @@ class ScheduleItem {
       startTime: json['startTime'] ?? '',
       type: json['type'] ?? 'online',
       meetingLink: json['meetingLink'],
+    );
+  }
+}
+
+class NotificationModel {
+  const NotificationModel({
+    required this.id,
+    required this.title,
+    this.body = '',
+    this.type = 'general',
+    this.isRead = false,
+    this.createdAt,
+  });
+
+  final String id;
+  final String title;
+  final String body;
+  final String type;
+  final bool isRead;
+  final String? createdAt;
+
+  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    return NotificationModel(
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      body: json['body']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'general',
+      isRead: json['isRead'] == true || json['read'] == true,
+      createdAt: json['createdAt']?.toString(),
+    );
+  }
+}
+
+class NotificationsPageData {
+  const NotificationsPageData({
+    required this.notifications,
+    this.unreadCount = 0,
+    this.page = 1,
+    this.totalPages = 1,
+  });
+
+  final List<NotificationModel> notifications;
+  final int unreadCount;
+  final int page;
+  final int totalPages;
+
+  factory NotificationsPageData.fromJson(Map<String, dynamic> json) {
+    final notifs = (json['notifications'] as List? ?? [])
+        .map((e) => NotificationModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return NotificationsPageData(
+      notifications: notifs,
+      unreadCount: json['unreadCount'] as int? ?? notifs.where((n) => !n.isRead).length,
+      page: json['pagination']?['page'] as int? ?? 1,
+      totalPages: json['pagination']?['totalPages'] as int? ?? 1,
     );
   }
 }

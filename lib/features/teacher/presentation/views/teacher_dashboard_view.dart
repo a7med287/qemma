@@ -19,6 +19,7 @@ import 'teacher_create_exam_view.dart';
 import 'teacher_grade_exams_view.dart';
 import 'teacher_schedule_view.dart';
 import 'teacher_live_class_view.dart';
+import 'teacher_notifications_view.dart';
 
 class TeacherDashboardView extends StatefulWidget {
   static const routeName = '/teacher/dashboard';
@@ -212,10 +213,36 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                 ),
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                      style: IconButton.styleFrom(backgroundColor: Colors.white12),
+                    Stack(
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.pushNamed(context, TeacherNotificationsView.routeName),
+                          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                          style: IconButton.styleFrom(backgroundColor: Colors.white12),
+                        ),
+                        if (data.unreadCount > 0)
+                          Positioned(
+                            right: 0.w,
+                            top: 0.h,
+                            child: Container(
+                              padding: EdgeInsets.all(4.r),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFEF4444),
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: BoxConstraints(minWidth: 18.w, minHeight: 18.h),
+                              child: Text(
+                                '${data.unreadCount}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     SizedBox(width: 4.w),
                     PopupMenuButton<String>(
