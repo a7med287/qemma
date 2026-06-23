@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
-import '../../../../core/helpers/build_snack_bar.dart';
+import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../auth/data/models/auth_models.dart';
+import '../../../auth/data/services/auth_service.dart';
+import '../../../student/presentation/widgets/student_async_body.dart';
+import '../../../student/presentation/widgets/student_shared_widgets.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 
 class TeacherProfileView extends StatefulWidget {
@@ -17,12 +22,18 @@ class TeacherProfileView extends StatefulWidget {
 }
 
 class _TeacherProfileViewState extends State<TeacherProfileView> {
+  UserModel? _user;
+  bool _loading = true;
+  String? _error;
+
   bool _editing = false;
+  bool _saving = false;
+  bool _showUsername = false;
+
   bool _passwordLoading = false;
-  late TextEditingController _nameCtrl;
-  late TextEditingController _phoneCtrl;
-  late TextEditingController _passwordCtrl;
-  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _passwordCtrl;
 
   @override
   void initState() {
@@ -30,6 +41,7 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
     _nameCtrl = TextEditingController();
     _phoneCtrl = TextEditingController();
     _passwordCtrl = TextEditingController();
+    _load();
   }
 
   @override
@@ -40,39 +52,91 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
     super.dispose();
   }
 
-  void _startEditing(UserModel user) {
-    _nameCtrl.text = user.name;
-    _phoneCtrl.text = user.phone ?? '';
-    setState(() => _editing = true);
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final user = await context.read<AuthService>().getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _nameCtrl.text = user.name;
+        _phoneCtrl.text = user.phone ?? '';
+        _loading = false;
+      });
+    } on Failure catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'فشل تحميل بيانات الملف الشخصي';
+        _loading = false;
+      });
+    }
   }
 
-  Future<void> _saveProfile(UserModel user) async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _save() async {
+    if (_nameCtrl.text.trim().isEmpty) {
+      buildSnackBar(context, 'الاسم لا يمكن أن يكون فارغاً', isError: true);
+      return;
+    }
+    setState(() => _saving = true);
     try {
-      await context.read<AuthCubit>().updateProfile({
+      final updated = await context.read<AuthService>().updateProfile({
         'name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
       });
-      if (mounted) setState(() => _editing = false);
-    } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _user = updated;
+        _editing = false;
+        _saving = false;
+      });
+      buildSnackBar(context, 'تم تحديث البيانات بنجاح ✅');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      buildSnackBar(context, 'فشل حفظ التعديلات، حاول مرة أخرى', isError: true);
+    }
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editing = false;
+      _nameCtrl.text = _user?.name ?? '';
+      _phoneCtrl.text = _user?.phone ?? '';
+    });
+  }
+
+  void _copyUsername() {
+    final username = _user?.username ?? '';
+    if (username.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: username));
+    buildSnackBar(context, 'تم نسخ اسم المستخدم 📋');
   }
 
   Future<void> _addPassword() async {
     final password = _passwordCtrl.text.trim();
     if (password.length < 8) {
-      _showSnack('يجب أن تتكون كلمة المرور من 8 أحرف على الأقل', isError: true);
+      buildSnackBar(context, 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[A-Z]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على حرف كبير', isError: true);
+      buildSnackBar(context, 'يجب أن تحتوي كلمة المرور على حرف كبير', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[a-z]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على حرف صغير', isError: true);
+      buildSnackBar(context, 'يجب أن تحتوي كلمة المرور على حرف صغير', isError: true);
       return;
     }
     if (!password.contains(RegExp(r'[0-9]'))) {
-      _showSnack('يجب أن تحتوي كلمة المرور على رقم', isError: true);
+      buildSnackBar(context, 'يجب أن تحتوي كلمة المرور على رقم', isError: true);
       return;
     }
     setState(() => _passwordLoading = true);
@@ -81,196 +145,40 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
       if (mounted) {
         _passwordCtrl.clear();
         setState(() => _passwordLoading = false);
-        _showSnack('تم إضافة كلمة المرور بنجاح');
+        buildSnackBar(context, 'تم إضافة كلمة المرور بنجاح ✅');
+        _load();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _passwordLoading = false);
-        _showSnack(e.toString(), isError: true);
+        buildSnackBar(context, e.toString(), isError: true);
       }
     }
   }
 
-  void _showSnack(String msg, {bool isError = false}) {
-    buildSnackBar(context, msg, isError: isError);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isDark = context.isDark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      body: BlocBuilder<AuthCubit, AuthState>(
-        builder: (context, state) {
-          if (state is! AuthAuthenticated) {
-            return const Center(child: Text('الرجاء تسجيل الدخول'));
-          }
-          final user = state.user;
-          return Column(
-            children: [
-              _buildHeader(isDark, user),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.all(16.r),
-                  children: [
-                    _buildProfileCard(isDark, user),
-                    SizedBox(height: .05.h),
-                    _buildInfoSection(isDark, user),
-                    if (user.specialties.isNotEmpty) ...[
-                      SizedBox(height: 20.h),
-                      _buildSpecialtiesSection(isDark, user),
-                    ],
-                    SizedBox(height: 20.h),
-                    _buildPasswordSection(isDark, user),
-                    SizedBox(height: 20.h),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildHeader(bool isDark, UserModel user) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF2563EB), Color(0xFF7C3AED), Color(0xFFDB2777)],
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(8.w, 8.h, 16.w, 40.h),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () => Navigator.maybePop(context),
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              style: IconButton.styleFrom(backgroundColor: Colors.white12),
-            ),
-            SizedBox(width: 8.w),
-            Text('الملف الشخصي',
-                style: TextStyles.bold20.copyWith(color: Colors.white)),
-            const Spacer(),
-            if (!_editing)
-              IconButton(
-                onPressed: () => _startEditing(user),
-                icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                style: IconButton.styleFrom(backgroundColor: Colors.white12),
-              )
-            else ...[
-              IconButton(
-                onPressed: () => _saveProfile(user),
-                icon: const Icon(Icons.check, color: Colors.white),
-                style: IconButton.styleFrom(backgroundColor: Colors.green.withValues(alpha: 0.3)),
-              ),
-              IconButton(
-                onPressed: () => setState(() => _editing = false),
-                icon: const Icon(Icons.close, color: Colors.white),
-                style: IconButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.3)),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileCard(bool isDark, UserModel user) {
-    return Transform.translate(
-      offset: Offset(0, -30.h),
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16.w),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12.r,
-              offset: Offset(0, 4.h),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 20.w),
+    return StudentPageShell(
+      title: 'الملف الشخصي',
+      headerChild: _user == null ? null : _buildHeaderInfo(context, _user!),
+      body: StudentAsyncBody(
+        loading: _loading,
+        error: _error,
+        onRetry: _load,
+        child: _user == null
+            ? const SizedBox.shrink()
+            : SingleChildScrollView(
+          padding: EdgeInsets.all(16.r),
           child: Column(
             children: [
-              Container(
-                width: 80.w,
-                height: 80.w,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Center(
-                  child: Text(
-                    user.name.substring(0, 1).toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32.sp,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Cairo',
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Text(user.name,
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w900,
-                    color: isDark
-                        ? const Color(0xFFF1F5F9)
-                        : const Color(0xFF1E293B),
-                  )),
-              SizedBox(height: 4.h),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(user.role.label,
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    )),
-              ),
-              if (user.authProvider != null) ...[
-                SizedBox(height: 6.h),
-                // Container(
-                //   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
-                //   decoration: BoxDecoration(
-                //     color: isDark
-                //         ? const Color(0xFF334155)
-                //         : const Color(0xFFF1F5F9),
-                //     borderRadius: BorderRadius.circular(12.r),
-                //   ),
-                //   child: Text(user.authProvider!,
-                //       style: TextStyle(
-                //         fontFamily: 'Cairo',
-                //         fontSize: 11.sp,
-                //         fontWeight: FontWeight.w600,
-                //         color: isDark
-                //             ? const Color(0xFF94A3B8)
-                //             : const Color(0xFF64748B),
-                //       )),
-                // ),
+              _buildInfoCard(context, _user!),
+              if (_user!.specialties.isNotEmpty) ...[
+                SizedBox(height: 16.h),
+                _buildSpecialtiesCard(context, _user!),
+              ],
+              if (!_user!.hasPassword) ...[
+                SizedBox(height: 16.h),
+                _buildPasswordCard(context, _user!),
               ],
             ],
           ),
@@ -279,422 +187,338 @@ class _TeacherProfileViewState extends State<TeacherProfileView> {
     );
   }
 
-  Widget _buildInfoSection(bool isDark, UserModel user) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
-            child: Text('المعلومات الشخصية',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w900,
-                  color: isDark
-                      ? const Color(0xFFF1F5F9)
-                      : const Color(0xFF1E293B),
-                )),
-          ),
-          if (_editing)
-            Form(
-              key: _formKey,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: Column(
-                  children: [
-                    _buildTextField(
-                      controller: _nameCtrl,
-                      label: 'الاسم',
-                      icon: Icons.person,
-                      isDark: isDark,
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'الحقل مطلوب' : null,
-                    ),
-                    SizedBox(height: 12.h),
-                    _buildTextField(
-                      controller: _phoneCtrl,
-                      label: 'رقم الهاتف',
-                      icon: Icons.phone,
-                      isDark: isDark,
-                      keyboardType: TextInputType.phone,
-                    ),
-                  ],
+  Widget _buildHeaderInfo(BuildContext context, UserModel user) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CircleAvatar(
+              radius: 36.r,
+              backgroundColor: Colors.white,
+              child: Text(
+                studentInitials(user.name),
+                style: TextStyles.bold20.copyWith(color: AppColors.gradientMid),
+              ),
+            ),
+            Positioned(
+              bottom: -2,
+              left: -2,
+              child: GestureDetector(
+                onTap: () => setState(() => _editing = !_editing),
+                child: Container(
+                  width: 26.w,
+                  height: 26.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.gradientMid, width: 1.5),
+                  ),
+                  child: Icon(Icons.edit, size: 14.sp, color: AppColors.gradientMid),
                 ),
               ),
             ),
-          if (!_editing) ...[
-            _buildInfoTile(
-              icon: Icons.person,
-              iconColor: const Color(0xFF7C3AED),
-              title: 'الاسم',
-              value: user.name,
-              isDark: isDark,
-            ),
-            Divider(
-                height: 1,
-                indent: 60.w,
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE5E7EB)),
           ],
-          _buildInfoTile(
-            icon: Icons.email_outlined,
-            iconColor: const Color(0xFF2563EB),
-            title: 'البريد الإلكتروني',
-            value: user.email,
-            isDark: isDark,
-          ),
-          if (!_editing && user.phone != null && user.phone!.isNotEmpty) ...[
-            Divider(
-                height: 1,
-                indent: 60.w,
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE5E7EB)),
-            _buildInfoTile(
-              icon: Icons.phone,
-              iconColor: const Color(0xFF10B981),
-              title: 'رقم الهاتف',
-              value: user.phone!,
-              isDark: isDark,
-            ),
-          ],
-          if (user.username != null && user.username!.isNotEmpty) ...[
-            Divider(
-                height: 1,
-                indent: 60.w,
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE5E7EB)),
-            _buildInfoTile(
-              icon: Icons.alternate_email,
-              iconColor: const Color(0xFFF59E0B),
-              title: 'اسم المستخدم',
-              value: user.username!,
-              trailing: IconButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: user.username!));
-                  _showSnack('تم نسخ اسم المستخدم');
-                },
-                icon: Icon(Icons.copy, size: 18,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B)),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-                splashRadius: 18.r,
+        ),
+        SizedBox(width: 14.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                user.name,
+                style: TextStyles.bold20.copyWith(color: Colors.white),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              isDark: isDark,
-            ),
-          ],
-          if (user.subject != null && user.subject!.isNotEmpty) ...[
-            Divider(
-                height: 1,
-                indent: 60.w,
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE5E7EB)),
-            _buildInfoTile(
-              icon: Icons.school,
-              iconColor: const Color(0xFFDB2777),
-              title: 'التخصص',
-              value: user.subject!,
-              isDark: isDark,
-            ),
-          ],
-        ],
-      ),
+              SizedBox(height: 6.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Text(
+                  user.role.label,
+                  style: TextStyles.semiBold13.copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required bool isDark,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      textDirection: TextDirection.rtl,
-      style: TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 13.sp,
-        color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          fontFamily: 'Cairo',
-          fontSize: 12.sp,
-          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-        ),
-        prefixIcon: Icon(icon,
-            size: 18,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.r),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.r),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB),
-          ),
-        ),
-        contentPadding:
-            EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String value,
-    Widget? trailing,
-    required bool isDark,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
+  Widget _buildInfoCard(BuildContext context, UserModel user) {
+    return StudentGlassCard(
+      title: 'المعلومات الشخصية',
+      icon: '📋',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 36.w,
-            height: 36.w,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Icon(icon, color: iconColor, size: 18.sp),
+          _field(
+            context,
+            label: 'الاسم الكامل',
+            icon: Icons.person_outline,
+            control: _editing
+                ? TextField(
+              controller: _nameCtrl,
+              style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+              decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+            )
+                : Text(user.name, style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
           ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
+          SizedBox(height: 14.h),
+          _field(
+            context,
+            label: 'اسم المستخدم',
+            control: Text(
+              _showUsername ? (user.username ?? '—') : '•' * ((user.username?.length ?? 8).clamp(6, 14)),
+              style: TextStyles.semiBold14.copyWith(
+                color: context.textPrimary,
+                letterSpacing: _showUsername ? 0 : 2,
+              ),
+            ),
+            actions: [
+              IconButton(
+                onPressed: _copyUsername,
+                icon: Icon(Icons.copy_rounded, size: 18.sp, color: context.textSecondary),
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                onPressed: () => setState(() => _showUsername = !_showUsername),
+                icon: Icon(
+                  _showUsername ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  size: 18.sp,
+                  color: const Color(0xFFF59E0B),
+                ),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+            warning: 'اسم المستخدم يُنشأ تلقائيًا ولا يمكن تعديله من هنا',
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _field(
+                  context,
+                  label: 'البريد الإلكتروني',
+                  icon: Icons.email_outlined,
+                  control: Text(
+                    user.email,
+                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _field(
+                  context,
+                  label: 'رقم الهاتف',
+                  icon: Icons.phone_outlined,
+                  control: _editing
+                      ? TextField(
+                    controller: _phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                    decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                  )
+                      : Text(
+                    user.phone?.isNotEmpty == true ? user.phone! : 'غير مسجل',
+                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (user.subject != null && user.subject!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B),
-                    )),
-                SizedBox(height: 2.h),
-                Text(value,
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? const Color(0xFFF1F5F9)
-                          : const Color(0xFF1E293B),
-                    )),
+                Expanded(
+                  child: _field(
+                    context,
+                    label: 'التخصص',
+                    icon: Icons.school,
+                    control: Text(
+                      user.subject!,
+                      style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          if (trailing != null) trailing,
+          ],
+          if (_editing) ...[
+            SizedBox(height: 20.h),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _saving ? null : _cancelEdit,
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      side: BorderSide(color: context.borderColor),
+                    ),
+                    child: Text('إلغاء', style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gradientMid,
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                    ),
+                    child: _saving
+                        ? SizedBox(
+                      width: 18.w,
+                      height: 18.w,
+                      child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                        : Text('حفظ التعديلات', style: TextStyles.semiBold14.copyWith(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildSpecialtiesSection(bool isDark, UserModel user) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('المواد الدراسية',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w900,
-                  color: isDark
-                      ? const Color(0xFFF1F5F9)
-                      : const Color(0xFF1E293B),
-                )),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: user.specialties.map((s) {
-                return Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
-                    ),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(s,
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      )),
-                );
-              }).toList(),
+  Widget _buildSpecialtiesCard(BuildContext context, UserModel user) {
+    return StudentGlassCard(
+      title: 'المواد الدراسية',
+      icon: '📚',
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 8.h,
+        children: user.specialties.map((s) {
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(20.r),
             ),
-          ],
-        ),
+            child: Text(s,
+                style: TextStyles.semiBold13.copyWith(color: Colors.white)),
+          );
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildPasswordSection(bool isDark, UserModel user) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('كلمة المرور',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w900,
-                  color: isDark
-                      ? const Color(0xFFF1F5F9)
-                      : const Color(0xFF1E293B),
-                )),
-            SizedBox(height: 10.h),
-            Row(
-              children: [
-                Icon(user.hasPassword ? Icons.lock : Icons.lock_open,
-                    size: 18,
-                    color: user.hasPassword
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFFF59E0B)),
-                SizedBox(width: 8.w),
-                Text(user.hasPassword ? 'كلمة المرور موجودة' : 'لا توجد كلمة مرور',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? const Color(0xFFF1F5F9)
-                          : const Color(0xFF1E293B),
-                    )),
-              ],
+  Widget _buildPasswordCard(BuildContext context, UserModel user) {
+    return StudentGlassCard(
+      title: 'كلمة المرور',
+      icon: '🔐',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lock_open, size: 18, color: const Color(0xFFF59E0B)),
+              SizedBox(width: 8.w),
+              Text('لا توجد كلمة مرور',
+                  style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          TextField(
+            controller: _passwordCtrl,
+            obscureText: true,
+            style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+            decoration: InputDecoration(
+              hintText: 'أدخل كلمة المرور الجديدة',
+              hintStyle: TextStyles.regular13.copyWith(color: context.textSecondary),
+              border: InputBorder.none,
+              filled: true,
+              fillColor: context.isDark ? const Color(0xFF1B2140) : const Color(0xFFF8FAFC),
             ),
-            if (!user.hasPassword) ...[
-              SizedBox(height: 12.h),
-              TextFormField(
-                controller: _passwordCtrl,
-                obscureText: true,
-                textDirection: TextDirection.rtl,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 13.sp,
-                  color: isDark
-                      ? const Color(0xFFF1F5F9)
-                      : const Color(0xFF1E293B),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'أدخل كلمة المرور الجديدة',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 12.sp,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
-                  ),
-                  prefixIcon: Icon(Icons.lock_outline,
-                      size: 18,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B)),
-                  filled: true,
-                  fillColor:
-                      isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE5E7EB),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE5E7EB),
-                    ),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-                ),
+          ),
+          SizedBox(height: 10.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _passwordLoading ? null : _addPassword,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gradientMid,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
               ),
-              SizedBox(height: 10.h),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _passwordLoading ? null : _addPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    padding:
-                        EdgeInsets.symmetric(vertical: 12.h),
-                  ),
-                  child: _passwordLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : Text('إضافة كلمة المرور',
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
-                          )),
+              child: _passwordLoading
+                  ? SizedBox(
+                width: 18.w,
+                height: 18.w,
+                child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+                  : Text('إضافة كلمة المرور',
+                      style: TextStyles.semiBold14.copyWith(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _field(
+      BuildContext context, {
+        required String label,
+        required Widget control,
+        IconData? icon,
+        List<Widget>? actions,
+        String? warning,
+      }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyles.regular13.copyWith(color: context.textSecondary)),
+        SizedBox(height: 6.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: context.isDark ? const Color(0xFF1B2140) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              Expanded(child: control),
+              if (actions != null) ...actions,
+              if (icon != null) Icon(icon, size: 18.sp, color: context.textSecondary),
+            ],
+          ),
+        ),
+        if (warning != null) ...[
+          SizedBox(height: 6.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline, size: 14.sp, color: const Color(0xFFF59E0B)),
+              SizedBox(width: 4.w),
+              Expanded(
+                child: Text(
+                  warning,
+                  style: TextStyles.regular13.copyWith(color: const Color(0xFFF59E0B)),
                 ),
               ),
             ],
-          ],
-        ),
-      ),
+          ),
+        ],
+      ],
     );
   }
 }
