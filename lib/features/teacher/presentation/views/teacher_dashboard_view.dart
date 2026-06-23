@@ -17,6 +17,7 @@ import 'teacher_assignments_view.dart';
 import 'teacher_chat_management_view.dart';
 import 'teacher_create_exam_view.dart';
 import 'teacher_grade_exams_view.dart';
+import 'teacher_schedule_view.dart';
 
 
 class TeacherDashboardView extends StatefulWidget {
@@ -754,7 +755,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => {},
+                  onPressed: () => Navigator.pushNamed(context, TeacherScheduleView.routeName),
                   child: Text('إضافة حصة',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -779,7 +780,7 @@ class _TeacherDashboardContentState extends State<_TeacherDashboardContent> {
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () => {},
+                      onPressed: () => Navigator.pushNamed(context, TeacherScheduleView.routeName),
                       child: Text('إضافة حصة',
                           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: const Color(0xFF2563EB))),
                     ),

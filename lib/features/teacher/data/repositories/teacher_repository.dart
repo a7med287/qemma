@@ -588,6 +588,54 @@ class TeacherRepository {
         await _dio.post('/attempts/$attemptId/auto-grade');
       }, 'فشل التصحيح التلقائي');
 
+  // ── Schedule / Sessions ────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getCoursesForSchedule() => _guard(() async {
+        final res = await _dio.get('/courses/my');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<List<Map<String, dynamic>>> getSessionList({bool upcoming = false}) => _guard(() async {
+        final res = await _dio.get('/schedule', queryParameters: {'upcoming': upcoming});
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الحصص');
+
+  Future<Map<String, dynamic>> createSession(Map<String, dynamic> data) => _guard(() async {
+        final res = await _dio.post('/schedule', data: {
+          'title': data['title'],
+          'courseId': data['course']?.isNotEmpty == true ? data['course'] : null,
+          'date': data['date'],
+          'startTime': data['startTime'],
+          'endTime': data['endTime'],
+          'type': data['type'] ?? 'online',
+          'meetingLink': (data['meetingLink'] as String?)?.isNotEmpty == true ? data['meetingLink'] : null,
+          'description': (data['description'] as String?)?.isNotEmpty == true ? data['description'] : null,
+          'maxStudents': data['maxStudents'],
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل إضافة الحصة');
+
+  Future<Map<String, dynamic>> updateSession(String id, Map<String, dynamic> data) => _guard(() async {
+        final res = await _dio.put('/schedule/$id', data: {
+          'title': data['title'],
+          'courseId': data['course']?.isNotEmpty == true ? data['course'] : null,
+          'date': data['date'],
+          'startTime': data['startTime'],
+          'endTime': data['endTime'],
+          'type': data['type'] ?? 'online',
+          'meetingLink': (data['meetingLink'] as String?)?.isNotEmpty == true ? data['meetingLink'] : null,
+          'description': (data['description'] as String?)?.isNotEmpty == true ? data['description'] : null,
+          'maxStudents': data['maxStudents'],
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تعديل الحصة');
+
+  Future<void> deleteSession(String id) => _guard(() async {
+        await _dio.delete('/schedule/$id');
+      }, 'فشل حذف الحصة');
+
   // ── Notifications (teacher sent list) ──────────────────────────
 
   Future<List<Map<String, dynamic>>> getSentNotifications() => _guard(() async {
