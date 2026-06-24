@@ -5,13 +5,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/helpers/build_snack_bar.dart';
-import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../../auth/data/models/auth_models.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../student/presentation/widgets/student_async_body.dart';
 import '../../../student/presentation/widgets/student_shared_widgets.dart';
+import 'widgets/assistant_profile_body.dart';
 
 class AssistantProfileView extends StatefulWidget {
   static const routeName = '/assistant-teacher/profile';
@@ -147,7 +147,10 @@ class _AssistantProfileViewState extends State<AssistantProfileView> {
   Widget build(BuildContext context) {
     return StudentPageShell(
       title: 'الملف الشخصي',
-      headerChild: _user == null ? null : _buildHeaderInfo(context, _user!),
+      headerChild: _user == null ? null : ProfileHeaderInfo(
+        user: _user!,
+        onEditTap: () => setState(() => _editing = !_editing),
+      ),
       body: StudentAsyncBody(
         loading: _loading,
         error: _error,
@@ -158,358 +161,40 @@ class _AssistantProfileViewState extends State<AssistantProfileView> {
                 padding: EdgeInsets.all(16.r),
                 child: Column(
                   children: [
-                    _buildInfoCard(context, _user!),
+                    ProfileInfoCard(
+                      user: _user!,
+                      editing: _editing,
+                      nameCtrl: _nameCtrl,
+                      phoneCtrl: _phoneCtrl,
+                      showUsername: _showUsername,
+                      onCopyUsername: _copyUsername,
+                      onToggleUsername: () => setState(() => _showUsername = !_showUsername),
+                    ),
                     if (_user!.specialties.isNotEmpty) ...[
                       SizedBox(height: 16.h),
-                      _buildSpecialtiesCard(context, _user!),
+                      ProfileSpecialtiesCard(user: _user!),
                     ],
                     if (!_user!.hasPassword) ...[
                       SizedBox(height: 16.h),
-                      _buildPasswordCard(context, _user!),
+                      ProfilePasswordCard(
+                        user: _user!,
+                        passwordCtrl: _passwordCtrl,
+                        passwordLoading: _passwordLoading,
+                        onAddPassword: _addPassword,
+                      ),
                     ],
                     if (_editing) ...[
                       SizedBox(height: 16.h),
-                      _buildActionButtons(),
+                      ProfileActionButtons(
+                        saving: _saving,
+                        onCancel: _cancelEdit,
+                        onSave: _save,
+                      ),
                     ],
                   ],
                 ),
               ),
       ),
-    );
-  }
-
-  Widget _buildHeaderInfo(BuildContext context, UserModel user) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            CircleAvatar(
-              radius: 36.r,
-              backgroundColor: Colors.white,
-              child: Text(
-                studentInitials(user.name),
-                style: TextStyles.bold20.copyWith(color: AppColors.gradientMid),
-              ),
-            ),
-            Positioned(
-              bottom: -2,
-              left: -2,
-              child: GestureDetector(
-                onTap: () => setState(() => _editing = !_editing),
-                child: Container(
-                  width: 26.w,
-                  height: 26.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.gradientMid, width: 1.5),
-                  ),
-                  child: Icon(Icons.edit, size: 14.sp, color: AppColors.gradientMid),
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(width: 14.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                user.name,
-                style: TextStyles.bold20.copyWith(color: Colors.white),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 6.h),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  user.role.label,
-                  style: TextStyles.semiBold13.copyWith(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(BuildContext context, UserModel user) {
-    return StudentGlassCard(
-      title: 'المعلومات الشخصية',
-      icon: '📋',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _field(
-            context,
-            label: 'الاسم الكامل',
-            icon: Icons.person_outline,
-            control: _editing
-                ? TextField(
-                    controller: _nameCtrl,
-                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
-                    decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-                  )
-                : Text(user.name, style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
-          ),
-          SizedBox(height: 14.h),
-          _field(
-            context,
-            label: 'اسم المستخدم (مدرس مساعد)',
-            control: Text(
-              _showUsername ? (user.username ?? '—') : '•' * ((user.username?.length ?? 8).clamp(6, 14)),
-              style: TextStyles.semiBold14.copyWith(
-                color: const Color(0xFFF59E0B),
-                letterSpacing: _showUsername ? 0 : 2,
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: _copyUsername,
-                icon: Icon(Icons.copy_rounded, size: 18.sp, color: context.textSecondary),
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                onPressed: () => setState(() => _showUsername = !_showUsername),
-                icon: Icon(
-                  _showUsername ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                  size: 18.sp,
-                  color: const Color(0xFFF59E0B),
-                ),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-            warning: 'اسم المستخدم محجوز ولا يمكن لأي شخص آخر استخدامه',
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _field(
-                  context,
-                  label: 'البريد الإلكتروني',
-                  icon: Icons.email_outlined,
-                  control: Text(
-                    user.email,
-                    style: TextStyles.semiBold14.copyWith(color: context.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _field(
-                  context,
-                  label: 'رقم الهاتف',
-                  icon: Icons.phone_outlined,
-                  control: _editing
-                      ? TextField(
-                          controller: _phoneCtrl,
-                          keyboardType: TextInputType.phone,
-                          style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
-                          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-                        )
-                      : Text(
-                          user.phone?.isNotEmpty == true ? user.phone! : 'غير مسجل',
-                          style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
-                        ),
-                ),
-              ),
-            ],
-          ),
-          if (user.subject != null && user.subject!.isNotEmpty) ...[
-            SizedBox(height: 8.h),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _field(
-                    context,
-                    label: 'التخصص',
-                    icon: Icons.school,
-                    control: Text(
-                      user.subject!,
-                      style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpecialtiesCard(BuildContext context, UserModel user) {
-    return StudentGlassCard(
-      title: 'المواد الدراسية',
-      icon: '📚',
-      child: Wrap(
-        spacing: 8.w,
-        runSpacing: 8.h,
-        children: user.specialties.map((s) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            child: Text(s,
-                style: TextStyles.semiBold13.copyWith(color: Colors.white)),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildPasswordCard(BuildContext context, UserModel user) {
-    return StudentGlassCard(
-      title: 'كلمة المرور',
-      icon: '🔐',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.lock_open, size: 18, color: const Color(0xFFF59E0B)),
-              SizedBox(width: 8.w),
-              Text('لا توجد كلمة مرور',
-                  style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          TextField(
-            controller: _passwordCtrl,
-            obscureText: true,
-            style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'أدخل كلمة المرور الجديدة',
-              hintStyle: TextStyles.regular13.copyWith(color: context.textSecondary),
-              border: InputBorder.none,
-              filled: true,
-              fillColor: context.isDark ? const Color(0xFF1B2140) : const Color(0xFFF8FAFC),
-            ),
-          ),
-          SizedBox(height: 10.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _passwordLoading ? null : _addPassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gradientMid,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-              ),
-              child: _passwordLoading
-                  ? SizedBox(
-                      width: 18.w,
-                      height: 18.w,
-                      child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text('إضافة كلمة المرور',
-                      style: TextStyles.semiBold14.copyWith(color: Colors.white)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _saving ? null : _cancelEdit,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-              side: BorderSide(color: context.borderColor),
-            ),
-            child: Text('إلغاء', style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
-          ),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gradientMid,
-              padding: EdgeInsets.symmetric(vertical: 12.h),
-            ),
-            child: _saving
-                ? SizedBox(
-                    width: 18.w,
-                    height: 18.w,
-                    child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : Text('حفظ التغييرات', style: TextStyles.semiBold14.copyWith(color: Colors.white)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _field(
-    BuildContext context, {
-    required String label,
-    required Widget control,
-    IconData? icon,
-    List<Widget>? actions,
-    String? warning,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyles.regular13.copyWith(color: context.textSecondary)),
-        SizedBox(height: 6.h),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: context.isDark ? const Color(0xFF1B2140) : const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: context.borderColor),
-          ),
-          child: Row(
-            children: [
-              Expanded(child: control),
-              if (actions != null) ...actions,
-              if (icon != null) Icon(icon, size: 18.sp, color: context.textSecondary),
-            ],
-          ),
-        ),
-        if (warning != null) ...[
-          SizedBox(height: 6.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.info_outline, size: 14.sp, color: const Color(0xFFF59E0B)),
-              SizedBox(width: 4.w),
-              Expanded(
-                child: Text(
-                  warning,
-                  style: TextStyles.regular13.copyWith(color: const Color(0xFFF59E0B)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
     );
   }
 }
