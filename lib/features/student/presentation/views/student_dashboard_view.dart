@@ -2,10 +2,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../auth/presentation/views/login_view.dart';
 import '../../data/mock/student_mock_data.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
@@ -939,6 +941,23 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
                     },
                   )),
                   Divider(height: 1, color: context.borderColor),
+                  ListTile(
+                    leading: Container(
+                      width: 36.w,
+                      height: 36.w,
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: .15),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(Icons.exit_to_app, color: Colors.red, size: 20.sp),
+                    ),
+                    title: Text('تسجيل الخروج', style: TextStyles.semiBold14.copyWith(color: Colors.red)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.read<AuthCubit>().logout();
+                      Navigator.pushNamedAndRemoveUntil(context, LoginView.routeName, (_) => false);
+                    },
+                  ),
                   SizedBox(height: 4.h),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12.w),
