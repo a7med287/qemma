@@ -77,6 +77,8 @@ abstract final class ParentModelJson {
   }
 
   static ChildCourse childCourseFromJson(Map<String, dynamic> json) {
+    final teacher = json['teacher'] as Map<String, dynamic>?;
+    final teacherName = teacher?['name'] as String? ?? json['teacherName'] as String?;
     return ChildCourse(
       id: json['_id'] ?? json['id'] ?? '',
       title: json['title'] ?? '',
@@ -85,7 +87,7 @@ abstract final class ParentModelJson {
       attendedSessions: _toInt(json['attendedSessions']),
       totalSessions: _toInt(json['totalSessions']),
       pendingAssignments: _toInt(json['pendingAssignments']),
-      teacherName: json['teacherName'],
+      teacherName: teacherName,
     );
   }
 
@@ -132,6 +134,7 @@ abstract final class ParentModelJson {
       pendingAssignments: _toInt(json['pendingAssignments']),
       upcomingExams: _toInt(json['upcomingExams']),
       alerts: alertsCount,
+      notifications: (json['notifications'] as List?)?.cast<Map<String, dynamic>>() ?? [],
     );
   }
 
@@ -176,15 +179,20 @@ abstract final class ParentModelJson {
 
   static ChildExamResult childExamResultFromJson(Map<String, dynamic> json) {
     final score = _toDouble(json['score']);
-    final maxScore = _toDouble(json['maxScore'] ?? 100);
+    final totalMarks = _toInt(json['totalMarks']);
+    final maxScore = totalMarks > 0 ? totalMarks.toDouble() : _toDouble(json['maxScore'] ?? 100);
+    final percentage = _toDoubleOrNull(json['percentage']);
     return ChildExamResult(
       id: json['_id'] ?? json['id'] ?? '',
-      title: json['title'] ?? '',
+      title: json['examTitle'] ?? json['title'] ?? '',
       courseTitle: json['courseTitle'],
       score: score,
       maxScore: maxScore,
       previousScore: _toDoubleOrNull(json['previousScore']),
-      passed: json['passed'] ?? score >= maxScore * 0.5,
+      passed: json['passed'] ?? (percentage ?? (maxScore > 0 ? (score / maxScore) * 100 : 0)) >= 50,
+      percentage: percentage,
+      totalMarks: totalMarks,
+      submittedAt: json['submittedAt'] != null ? DateTime.tryParse(json['submittedAt']) : null,
     );
   }
 

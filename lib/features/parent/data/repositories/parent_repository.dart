@@ -39,9 +39,16 @@ class ParentRepository {
   Future<List<ChildTask>> getChildTasks(String childId) => _guard(() async {
         final res = await _dio.get('/parents/children/$childId/tasks');
         final data = unwrapBody(res.data);
-        final list = data is List ? data : (data['tasks'] ?? data['data'] ?? []);
+        final list = data is List ? data : (data['pendingAssignments'] ?? data['tasks'] ?? data['data'] ?? []);
         return (list as List).map((e) => ParentModelJson.childTaskFromJson(e)).toList();
       }, 'فشل تحميل الواجبات');
+
+  Future<List<Map<String, dynamic>>> getChildPendingExams(String childId) => _guard(() async {
+        final res = await _dio.get('/parents/children/$childId/tasks');
+        final data = unwrapBody(res.data) as Map<String, dynamic>? ?? {};
+        final exams = data['pendingExams'] as List? ?? [];
+        return exams.cast<Map<String, dynamic>>();
+      }, 'فشل تحميل الاختبارات القادمة');
 
   Future<List<ChildExamResult>> getChildExamResults(String childId) => _guard(() async {
         final res = await _dio.get('/parents/children/$childId/exam-results');

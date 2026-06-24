@@ -21,8 +21,9 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
     with SingleTickerProviderStateMixin {
   ChildDetail? _detail;
   List<ChildCourse> _courses = [];
-  List<ChildTask> _tasks = [];
+  List<ChildTask> _assignments = [];
   List<ChildExamResult> _examResults = [];
+  List<Map<String, dynamic>> _pendingExams = [];
   bool _loading = true;
   String? _error;
   late final TabController _tabCtrl;
@@ -52,14 +53,16 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
         repo.getChildDashboard(widget.childId),
         repo.getChildCourses(widget.childId),
         repo.getChildTasks(widget.childId),
+        repo.getChildPendingExams(widget.childId),
         repo.getChildExamResults(widget.childId),
       ]);
       if (mounted) {
         setState(() {
           _detail = results[0] as ChildDetail;
           _courses = results[1] as List<ChildCourse>;
-          _tasks = results[2] as List<ChildTask>;
-          _examResults = results[3] as List<ChildExamResult>;
+          _assignments = results[2] as List<ChildTask>;
+          _pendingExams = results[3] as List<Map<String, dynamic>>;
+          _examResults = results[4] as List<ChildExamResult>;
         });
       }
     } catch (e) {
@@ -145,20 +148,6 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
                               ],
                             ),
                           ),
-                          // SizedBox(width: 8.w),
-                          // Column(
-                          //   children: [
-                          //     Text('${_detail!.averageGrade.round()}%',
-                          //       style: TextStyles.bold23.copyWith(color: const Color(0xFF2563EB)),
-                          //     ),
-                          //     Text('المتوسط',
-                          //       style: TextStyle(
-                          //         fontFamily: 'Cairo', fontSize: 10.sp,
-                          //         color: context.textSecondary,
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
                           SizedBox(width: 12.w),
                           Container(width: 1, height: 40.h, color: context.borderColor),
                           SizedBox(width: 12.w),
@@ -166,10 +155,10 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
                             padding: const EdgeInsets.only(left: 8.0),
                             child: Column(
                               children: [
-                                Text('${_detail!.attendanceRate.round()}%',
-                                  style: TextStyles.bold23.copyWith(color: const Color(0xFF059669)),
+                                Text('${_detail!.averageGrade.round()}%',
+                                  style: TextStyles.bold23.copyWith(color: const Color(0xFF2563EB)),
                                 ),
-                                Text('الحضور',
+                                Text('المتوسط',
                                   style: TextStyle(
                                     fontFamily: 'Cairo', fontSize: 10.sp,
                                     color: context.textSecondary,
@@ -263,6 +252,7 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
       itemBuilder: (_, i) {
         final c = _courses[i];
         final gradeColor = parentGradeColor(c.grade);
+        final teacherName = c.teacherName != null && c.teacherName!.isNotEmpty ? c.teacherName : null;
         return Padding(
           padding: EdgeInsets.only(bottom: 12.h),
           child: InkWell(
@@ -299,9 +289,10 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
                     ],
                   ),
                   SizedBox(height: 4.h),
-                  Text(c.teacherName ?? 'غير محدد',
-                    style: TextStyles.regular13.copyWith(color: context.textSecondary),
-                  ),
+                  if (teacherName != null)
+                    Text(teacherName,
+                      style: TextStyles.regular13.copyWith(color: context.textSecondary),
+                    ),
                   SizedBox(height: 12.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -336,19 +327,18 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
   // ── Assignments Tab ──
 
   Widget _buildAssignments() {
-    if (_tasks.isEmpty) {
+    if (_assignments.isEmpty) {
       return _empty('لا توجد واجبات', Icons.assignment);
     }
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
-      itemCount: _tasks.length,
+      itemCount: _assignments.length,
       itemBuilder: (_, i) {
-        final t = _tasks[i];
-        final isCompleted = t.status == 'completed';
+        final a = _assignments[i];
+        final isCompleted = a.status == 'completed';
         final statusColor = isCompleted ? const Color(0xFF059669) : const Color(0xFFF59E0B);
         final statusBg = isCompleted ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
         return Container(
-          margin: EdgeInsets.only(bottom: 4.h),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -357,11 +347,11 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
             ),
           ),
           child: ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
             title: Row(
               children: [
                 Expanded(
-                  child: Text(t.title,
+                  child: Text(a.title,
                     style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
                   ),
                 ),
@@ -384,13 +374,13 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${t.courseTitle ?? ''}${t.dueDate != null ? ' • التسليم: ${t.dueDate!.day}/${t.dueDate!.month}/${t.dueDate!.year}' : ''}',
+                  '${a.courseTitle ?? ''}${a.dueDate != null ? ' • التسليم: ${a.dueDate!.day}/${a.dueDate!.month}/${a.dueDate!.year}' : ''}',
                   style: TextStyles.regular13.copyWith(color: context.textSecondary),
                 ),
-                if (t.score != null)
+                if (a.score != null)
                   Padding(
                     padding: EdgeInsets.only(top: 4.h),
-                    child: Text('الدرجة: ${t.score!.round()}${t.maxScore != null ? '/${t.maxScore!.round()}' : ''}',
+                    child: Text('الدرجة: ${a.score!.round()}${a.maxScore != null ? '/${a.maxScore!.round()}' : ''}',
                       style: TextStyles.semiBold14.copyWith(color: const Color(0xFF059669)),
                     ),
                   ),
@@ -405,47 +395,87 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
   // ── Exams Tab ──
 
   Widget _buildExams() {
-    final sorted = _examResults.where((e) => e.maxScore > 0).toList();
-    if (sorted.isEmpty && _examResults.isEmpty) {
+    final completedExams = _examResults.map((e) {
+      final pct = e.percentage ?? (e.maxScore > 0 ? (e.score / e.maxScore) * 100 : 0);
+      return _ExamItem(
+        id: e.id,
+        title: e.title,
+        course: e.courseTitle ?? '',
+        date: e.submittedAt != null
+            ? '${e.submittedAt!.day}/${e.submittedAt!.month}/${e.submittedAt!.year}'
+            : '',
+        time: '',
+        grade: pct,
+        status: 'completed',
+      );
+    }).toList();
+
+    final upcomingFromTasks = _pendingExams.map((e) {
+      final rawDate = e['availableFrom'] as String? ?? e['dueDate'] as String?;
+      String date = '';
+      String time = '';
+      if (rawDate != null) {
+        final dt = DateTime.tryParse(rawDate);
+        if (dt != null) {
+          date = _formatDate(rawDate);
+          time = e['availableFrom'] != null ? _formatTime(rawDate) : '';
+        }
+      }
+      return _ExamItem(
+        id: e['_id'] ?? e['id'] ?? '',
+        title: e['title'] ?? '',
+        course: e['courseName'] ?? e['courseTitle'] ?? '',
+        date: date,
+        time: time,
+        grade: 0,
+        status: 'upcoming',
+      );
+    }).toList();
+
+    final allExams = [...completedExams, ...upcomingFromTasks];
+
+    if (allExams.isEmpty) {
       return _empty('لا توجد اختبارات', Icons.bar_chart);
     }
 
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
-      itemCount: _examResults.length,
+      itemCount: allExams.length,
       itemBuilder: (_, i) {
-        final e = _examResults[i];
-        final percent = e.maxScore > 0 ? (e.score / e.maxScore) * 100 : 0.0;
-        final hasPrevious = e.previousScore != null;
+        final exam = allExams[i];
+        final isLast = i == allExams.length - 1;
+        final isCompleted = exam.status == 'completed';
+        final statusFg = isCompleted ? const Color(0xFF059669) : const Color(0xFF2563EB);
+        final statusBg = isCompleted ? const Color(0xFFF0FDF4) : const Color(0xFFEFF6FF);
         return Container(
-          margin: EdgeInsets.only(bottom: 4.h),
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: context.borderColor.withValues(alpha: .3), width: .5,
-              ),
-            ),
+            border: isLast
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: context.borderColor.withValues(alpha: .3), width: .5,
+                    ),
+                  ),
           ),
           child: ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
             title: Row(
               children: [
                 Expanded(
-                  child: Text(e.title,
-                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                  child: Text(exam.title,
+                    style: TextStyles.semiBold16.copyWith(color: context.textPrimary),
                   ),
                 ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                   decoration: BoxDecoration(
-                    color: e.passed ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                    color: statusBg,
                     borderRadius: BorderRadius.circular(16.r),
                   ),
-                  child: Text(e.passed ? 'مكتمل' : 'قادم',
+                  child: Text(isCompleted ? 'مكتمل' : 'قادم',
                     style: TextStyle(
                       fontFamily: 'Cairo', fontSize: 11.sp,
-                      fontWeight: FontWeight.w700,
-                      color: e.passed ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                      fontWeight: FontWeight.w700, color: statusFg,
                     ),
                   ),
                 ),
@@ -454,26 +484,26 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (e.courseTitle != null)
-                  Text(e.courseTitle!,
-                    style: TextStyles.regular13.copyWith(color: context.textSecondary),
-                  ),
-                if (percent > 0)
-                  Row(
-                    children: [
-                      Text('الدرجة: ${percent.round()}%',
-                        style: TextStyles.semiBold14.copyWith(color: const Color(0xFF059669)),
-                      ),
-                      if (hasPrevious) ...[
+                Text(
+                  '${exam.course}${exam.date.isNotEmpty ? ' • ${exam.date}' : ''}${exam.time.isNotEmpty ? ' • ${exam.time}' : ''}',
+                  style: TextStyles.regular13.copyWith(color: context.textSecondary),
+                ),
+                if (exam.grade > 0)
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Row(
+                      children: [
+                        Text('الدرجة: ${exam.grade.round()}%',
+                          style: TextStyles.semiBold14.copyWith(color: const Color(0xFF059669)),
+                        ),
                         SizedBox(width: 6.w),
                         Icon(
-                          e.score >= (e.previousScore ?? 0) ? Icons.trending_up : Icons.trending_down,
+                          exam.grade >= 80 ? Icons.trending_up : Icons.trending_down,
                           size: 18.sp,
-                          color: e.score >= (e.previousScore ?? 0)
-                              ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                          color: exam.grade >= 80 ? const Color(0xFF059669) : const Color(0xFFDC2626),
                         ),
                       ],
-                    ],
+                    ),
                   ),
               ],
             ),
@@ -486,46 +516,30 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
   // ── Activities Tab ──
 
   Widget _buildActivities() {
-    // Derive activities from exam results (matching frontend pattern)
-    final activities = <_ActivityItem>[];
-    for (final e in _examResults) {
-      activities.add(_ActivityItem(
-        type: 'success',
-        text: e.passed ? 'اجتاز اختبار ${e.title}' : 'لم يجتاز اختبار ${e.title}',
-        time: 'منذ فترة',
-      ));
-    }
-    for (final t in _tasks.where((t) => t.status == 'completed')) {
-      activities.add(_ActivityItem(
-        type: 'warning',
-        text: 'أتم ${t.title}',
-        time: t.dueDate != null ? '${t.dueDate!.day}/${t.dueDate!.month}/${t.dueDate!.year}' : 'منذ فترة',
-      ));
-    }
-
-    if (activities.isEmpty) {
+    final notifs = _detail?.notifications ?? [];
+    if (notifs.isEmpty) {
       return _empty('لا يوجد نشاط حديث', Icons.calendar_today);
     }
 
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
-      itemCount: activities.length,
+      itemCount: notifs.length > 10 ? 10 : notifs.length,
       itemBuilder: (_, i) {
-        final a = activities[i];
-        IconData icon;
-        Color iconColor;
-        switch (a.type) {
-          case 'success':
-            icon = Icons.check_circle; iconColor = const Color(0xFF059669);
-          case 'warning':
-            icon = Icons.warning_amber_rounded; iconColor = const Color(0xFFF59E0B);
-          case 'error':
-            icon = Icons.cancel; iconColor = const Color(0xFFDC2626);
-          default:
-            icon = Icons.check_circle; iconColor = const Color(0xFF2563EB);
-        }
+        final n = notifs[i];
+        final type = n['type'] as String? ?? '';
+        final icon = type == 'exam'
+            ? Icons.check_circle
+            : type == 'assignment'
+                ? Icons.warning_amber_rounded
+                : Icons.check_circle;
+        final iconColor = type == 'exam'
+            ? const Color(0xFF059669)
+            : type == 'assignment'
+                ? const Color(0xFFF59E0B)
+                : const Color(0xFF2563EB);
+        final text = n['title'] as String? ?? n['body'] as String? ?? '';
+        final time = n['createdAt'] as String? ?? n['time'] as String? ?? 'منذ قليل';
         return Container(
-          margin: EdgeInsets.only(bottom: 4.h),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -534,12 +548,12 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
             ),
           ),
           child: ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
             leading: Icon(icon, color: iconColor, size: 22.sp),
-            title: Text(a.text,
+            title: Text(text,
               style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
             ),
-            subtitle: Text(a.time,
+            subtitle: Text(time,
               style: TextStyles.regular13.copyWith(color: context.textSecondary),
             ),
           ),
@@ -560,11 +574,33 @@ class _ChildDetailsViewState extends State<ChildDetailsView>
       ),
     );
   }
+
+  String _formatDate(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return raw;
+    return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  String _formatTime(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return '';
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
 }
 
-class _ActivityItem {
-  final String type;
-  final String text;
+class _ExamItem {
+  final String id;
+  final String title;
+  final String course;
+  final String date;
   final String time;
-  const _ActivityItem({required this.type, required this.text, required this.time});
+  final double grade;
+  final String status;
+  const _ExamItem({
+    required this.id, required this.title, required this.course,
+    required this.date, required this.time, required this.grade, required this.status,
+  });
 }
+

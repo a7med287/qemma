@@ -68,6 +68,7 @@ class ChildDetail {
   final int pendingAssignments;
   final int upcomingExams;
   final int alerts;
+  final List<Map<String, dynamic>> notifications;
 
   const ChildDetail({
     required this.id,
@@ -85,6 +86,7 @@ class ChildDetail {
     this.pendingAssignments = 0,
     this.upcomingExams = 0,
     this.alerts = 0,
+    this.notifications = const [],
   });
 }
 
@@ -116,6 +118,9 @@ class ChildExamResult {
   final double maxScore;
   final double? previousScore;
   final bool passed;
+  final double? percentage;
+  final int totalMarks;
+  final DateTime? submittedAt;
 
   const ChildExamResult({
     required this.id,
@@ -125,6 +130,9 @@ class ChildExamResult {
     this.maxScore = 100,
     this.previousScore,
     this.passed = false,
+    this.percentage,
+    this.totalMarks = 0,
+    this.submittedAt,
   });
 }
 
