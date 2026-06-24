@@ -36,14 +36,22 @@ class _AssistantChatViewState extends State<AssistantChatView> {
 
   AssistantRepository get _repo => context.read<AssistantRepository>();
 
+  final _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _chatSessionId != null) {
+        _scrollToBottom();
+      }
+    });
     _fetchData();
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _searchCtrl.dispose();
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
@@ -174,14 +182,11 @@ class _AssistantChatViewState extends State<AssistantChatView> {
   }
 
   void _scrollToBottom() {
-    if (_scrollCtrl.hasClients) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollCtrl.hasClients) {
-          _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
-        }
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+      }
+    });
   }
 
   bool _isFromTeacher(Map<String, dynamic> msg) {
@@ -565,9 +570,13 @@ class _AssistantChatViewState extends State<AssistantChatView> {
                 style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp,
                     color: context.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1F2937))),
             if (time.isNotEmpty)
-              Padding(
-                padding: EdgeInsets.only(top: 4.h),
-                child: Text(time, style: TextStyle(fontFamily: 'Cairo', fontSize: 9.sp, color: _fieldLabel())),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 4.h),
+                  child: Text(time, style: TextStyle(fontFamily: 'Cairo', fontSize: 10.sp,
+                      color: _fieldLabel().withValues(alpha: .8), fontWeight: FontWeight.w500)),
+                ),
               ),
           ],
         ),
@@ -589,6 +598,7 @@ class _AssistantChatViewState extends State<AssistantChatView> {
             Expanded(
               child: TextField(
                 controller: _msgCtrl,
+                focusNode: _focusNode,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _sendMessage(),
                 style: TextStyle(fontFamily: 'Cairo', fontSize: 14.sp, color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1F2937)),
