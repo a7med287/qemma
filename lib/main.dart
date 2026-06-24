@@ -33,6 +33,7 @@ import 'package:qemma/features/assistant/presentation/views/assistant_dashboard_
 import 'package:qemma/features/assistant/presentation/views/assistant_chat_view.dart';
 import 'package:qemma/features/assistant/presentation/views/assistant_grade_exams_view.dart';
 import 'package:qemma/features/assistant/presentation/views/assistant_notifications_view.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_student_detail_view.dart';
 import 'constants.dart';
 import 'core/cubits/theme_cubit/theme_cubit.dart';
 import 'core/cubits/theme_cubit/theme_state.dart';
@@ -171,6 +172,9 @@ class _QemaAppView extends StatelessWidget {
                 }
                 if (settings.name == TeacherEditBookView.routeName && settings.arguments is Map<String, dynamic>) {
                   return MaterialPageRoute(builder: (_) => TeacherEditBookView(book: settings.arguments as Map<String, dynamic>));
+                }
+                if (settings.name == AssistantStudentDetailView.routeName && settings.arguments is String) {
+                  return MaterialPageRoute(builder: (_) => AssistantStudentDetailView(studentId: settings.arguments as String));
                 }
                 return null;
               },

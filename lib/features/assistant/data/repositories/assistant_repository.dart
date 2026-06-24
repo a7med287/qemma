@@ -109,9 +109,15 @@ class AssistantRepository {
         return list.map((e) => AssistantStudent.fromJson(e as Map<String, dynamic>)).toList();
       }, 'فشل تحميل الطلاب');
 
-  Future<Map<String, dynamic>> getStudentDetail(String studentId) => _guard(() async {
+  Future<EnrichedStudentsResponse> getStudentsEnriched() => _guard(() async {
+        final res = await _dio.get('/assistant/students');
+        final data = asMap(unwrapBody(res.data));
+        return EnrichedStudentsResponse.fromJson(data);
+      }, 'فشل تحميل بيانات الطلاب');
+
+  Future<StudentDetailResponse> getStudentDetail(String studentId) => _guard(() async {
         final res = await _dio.get('/assistant/students/$studentId');
-        return asMap(unwrapBody(res.data));
+        return StudentDetailResponse.fromJson(asMap(unwrapBody(res.data)));
       }, 'فشل تحميل تفاصيل الطالب');
 
   Future<List<Map<String, dynamic>>> getPendingAttempts({int limit = 50}) => _guard(() async {
