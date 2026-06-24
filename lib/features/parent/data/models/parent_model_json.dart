@@ -90,23 +90,76 @@ abstract final class ParentModelJson {
   }
 
   static ChildDetail childDetailFromJson(Map<String, dynamic> json) {
+    // Dashboard API returns { student: {...}, kpis: [...], ... }
+    final student = json['student'] as Map<String, dynamic>? ?? json;
+
+    final kpis = json['kpis'] as List? ?? [];
+    double fromKpis(String type) {
+      for (final k in kpis) {
+        if (k is Map<String, dynamic>) {
+          final t = k['type'] ?? k['key'] ?? '';
+          if (t == type) return _toDouble(k['value'] ?? k['score']);
+        }
+      }
+      return 0;
+    }
+
+    final rawAlerts = json['alerts'];
+    final alertsCount = rawAlerts is List ? rawAlerts.length : _toInt(rawAlerts);
+
+    double averageGrade = _toDouble(student['averageGrade']);
+    if (averageGrade == 0 && kpis.isNotEmpty) {
+      averageGrade = fromKpis('avgGrade') + fromKpis('averageGrade');
+    }
+
+    double attendance = _toDouble(student['attendanceRate']);
+    if (attendance == 0) attendance = _toDouble(student['attendance']);
+    if (attendance == 0 && kpis.isNotEmpty) attendance = fromKpis('attendance');
+
     return ChildDetail(
-      id: json['_id'] ?? json['id'] ?? '',
-      name: json['name'] ?? '',
-      gradeLevel: json['gradeLevel'] ?? '',
-      email: json['email'],
-      phone: json['phone'],
-      averageGrade: _toDouble(json['averageGrade']),
-      attendanceRate: _toDouble(json['attendanceRate']),
-      avatar: json['avatar'],
+      id: student['_id'] ?? student['id'] ?? json['_id'] ?? json['id'] ?? '',
+      name: student['name'] ?? json['name'] ?? '',
+      gradeLevel: student['gradeLevel'] ?? student['stream'] ?? student['grade'] ?? json['gradeLevel'] ?? '',
+      email: student['email'] ?? json['email'],
+      phone: student['phone'] ?? json['phone'],
+      averageGrade: averageGrade,
+      attendanceRate: attendance,
+      avatar: student['avatar'] ?? json['avatar'],
       courses: (json['courses'] as List?)?.map((e) => childCourseFromJson(e)).toList() ?? [],
-      tasks: (json['tasks'] as List?)?.map((e) => childTaskFromJson(e)).toList() ?? [],
+      tasks: _parseDetailTasks(json),
       examResults: (json['examResults'] as List?)?.map((e) => childExamResultFromJson(e)).toList() ?? [],
-      totalCourses: _toInt(json['totalCourses']),
+      totalCourses: _toInt(student['totalCourses']),
       pendingAssignments: _toInt(json['pendingAssignments']),
       upcomingExams: _toInt(json['upcomingExams']),
-      alerts: _toInt(json['alerts']),
+      alerts: alertsCount,
     );
+  }
+
+  static List<ChildTask> _parseDetailTasks(Map<String, dynamic> json) {
+    // Try flat tasks list first
+    final flat = json['tasks'] as List?;
+    if (flat != null) return flat.map((e) => childTaskFromJson(e)).toList();
+    // Try tasks.pendingAssignments (frontend pattern)
+    final tasksObj = json['tasks'] as Map<String, dynamic>?;
+    if (tasksObj != null) {
+      final pending = tasksObj['pendingAssignments'] as List? ?? [];
+      final result = pending.map((e) => childTaskFromJson(e)).toList();
+      // Also add pending exams as tasks
+      final exams = tasksObj['pendingExams'] as List? ?? [];
+      for (final e in exams) {
+        if (e is Map<String, dynamic>) {
+          result.add(ChildTask(
+            id: e['_id'] ?? e['id'] ?? '',
+            title: e['title'] ?? '',
+            courseTitle: e['courseName'] ?? e['courseTitle'],
+            status: 'upcoming',
+            dueDate: e['dueDate'] != null ? DateTime.tryParse(e['dueDate']) : null,
+          ));
+        }
+      }
+      return result;
+    }
+    return [];
   }
 
   static ChildTask childTaskFromJson(Map<String, dynamic> json) {
