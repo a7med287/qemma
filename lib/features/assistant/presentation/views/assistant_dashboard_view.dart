@@ -139,9 +139,13 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
         children: [
           _buildHeader(context, data),
           Expanded(
-            child: _selectedTab == 0
-                ? _buildHomeTab(context, data, isDark)
-                : _buildStudentsTab(context, isDark),
+            child: IndexedStack(
+              index: _selectedTab,
+              children: [
+                _buildHomeTab(context, data, isDark),
+                _buildStudentsTab(context, isDark),
+              ],
+            ),
           ),
         ],
       ),
@@ -262,15 +266,13 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
     final items = [
       _NavItem(label: 'الرئيسية', icon: Icons.home_rounded, index: 0),
       _NavItem(label: 'الطلاب', icon: Icons.people_rounded, index: 1),
-      _NavItem(label: 'المحادثات', icon: Icons.chat_bubble_rounded, index: 2),
-      _NavItem(label: 'التصحيح', icon: Icons.assignment_turned_in_rounded, index: 3),
     ];
     return Container(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB))),
       ),
       child: BottomNavigationBar(
-        currentIndex: _selectedTab > 1 ? 0 : _selectedTab,
+        currentIndex: _selectedTab,
         type: BottomNavigationBarType.fixed,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         selectedItemColor: const Color(0xFF059669),
@@ -281,17 +283,10 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
         unselectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w500),
         elevation: 0,
         onTap: (i) {
-          switch (i) {
-            case 0:
-              setState(() => _selectedTab = 0);
-            case 1:
-              setState(() { _selectedTab = 1; });
-              _loadStudents();
-            case 2:
-              Navigator.pushNamed(context, AssistantChatView.routeName);
-            case 3:
-              Navigator.pushNamed(context, AssistantGradeExamsView.routeName);
-          }
+          setState(() {
+            _selectedTab = i;
+            if (i == 1) _loadStudents();
+          });
         },
         items: items.map((item) => BottomNavigationBarItem(
           icon: Icon(item.icon),
