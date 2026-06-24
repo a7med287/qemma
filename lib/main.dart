@@ -28,6 +28,11 @@ import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_
 import 'package:qemma/features/teacher/data/models/teacher_models.dart';
 import 'package:qemma/features/parent/data/repositories/parent_repository.dart';
 import 'package:qemma/features/parent/presentation/routes/parent_routes.dart';
+import 'package:qemma/features/assistant/data/repositories/assistant_repository.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_dashboard_view.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_chat_view.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_grade_exams_view.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_notifications_view.dart';
 import 'constants.dart';
 import 'core/cubits/theme_cubit/theme_cubit.dart';
 import 'core/cubits/theme_cubit/theme_state.dart';
@@ -65,6 +70,7 @@ class QemmaApp extends StatelessWidget {
         RepositoryProvider(create: (_) => StudentRepository(apiClient)),
         RepositoryProvider(create: (_) => TeacherRepository(apiClient)),
         RepositoryProvider(create: (_) => ParentRepository(apiClient)),
+        RepositoryProvider(create: (_) => AssistantRepository(apiClient)),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -149,6 +155,10 @@ class _QemaAppView extends StatelessWidget {
                 TeacherNotificationsView.routeName: (_) => const TeacherNotificationsView(),
                 TeacherProfileView.routeName: (_) => const TeacherProfileView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
+                AssistantDashboardView.routeName: (_) => const AssistantDashboardView(),
+                AssistantChatView.routeName: (_) => const AssistantChatView(),
+                AssistantGradeExamsView.routeName: (_) => const AssistantGradeExamsView(),
+                AssistantNotificationsView.routeName: (_) => const AssistantNotificationsView(),
                 ...ParentRoutes.routes,
               },
               onGenerateRoute: (settings) {
