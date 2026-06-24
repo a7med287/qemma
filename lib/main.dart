@@ -34,6 +34,7 @@ import 'package:qemma/features/assistant/presentation/views/assistant_chat_view.
 import 'package:qemma/features/assistant/presentation/views/assistant_grade_exams_view.dart';
 import 'package:qemma/features/assistant/presentation/views/assistant_notifications_view.dart';
 import 'package:qemma/features/assistant/presentation/views/assistant_student_detail_view.dart';
+import 'package:qemma/features/assistant/presentation/views/assistant_profile_view.dart';
 import 'constants.dart';
 import 'core/cubits/theme_cubit/theme_cubit.dart';
 import 'core/cubits/theme_cubit/theme_state.dart';
@@ -160,6 +161,7 @@ class _QemaAppView extends StatelessWidget {
                 AssistantChatView.routeName: (_) => const AssistantChatView(),
                 AssistantGradeExamsView.routeName: (_) => const AssistantGradeExamsView(),
                 AssistantNotificationsView.routeName: (_) => const AssistantNotificationsView(),
+                AssistantProfileView.routeName: (_) => const AssistantProfileView(),
                 ...ParentRoutes.routes,
               },
               onGenerateRoute: (settings) {
@@ -175,6 +177,9 @@ class _QemaAppView extends StatelessWidget {
                 }
                 if (settings.name == AssistantStudentDetailView.routeName && settings.arguments is String) {
                   return MaterialPageRoute(builder: (_) => AssistantStudentDetailView(studentId: settings.arguments as String));
+                }
+                if (settings.name == AssistantProfileView.routeName) {
+                  return MaterialPageRoute(builder: (_) => const AssistantProfileView());
                 }
                 return null;
               },

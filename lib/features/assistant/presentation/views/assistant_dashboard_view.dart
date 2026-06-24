@@ -11,6 +11,7 @@ import '../../../auth/presentation/views/login_view.dart';
 import 'assistant_chat_view.dart';
 import 'assistant_grade_exams_view.dart';
 import 'assistant_notifications_view.dart';
+import 'assistant_profile_view.dart';
 import 'assistant_student_detail_view.dart';
 
 class AssistantDashboardView extends StatefulWidget {
@@ -218,7 +219,9 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
                       icon: const Icon(Icons.more_vert, color: Colors.white),
                       style: IconButton.styleFrom(backgroundColor: Colors.white12),
                       onSelected: (value) {
-                        if (value == 'logout') {
+                        if (value == 'profile') {
+                          Navigator.pushNamed(context, AssistantProfileView.routeName);
+                        } else if (value == 'logout') {
                           context.read<AuthCubit>().logout();
                           Navigator.pushNamedAndRemoveUntil(context, LoginView.routeName, (_) => false);
                         }
