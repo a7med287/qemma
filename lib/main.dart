@@ -26,7 +26,8 @@ import 'package:qemma/features/teacher/presentation/views/teacher_notifications_
 import 'package:qemma/features/teacher/presentation/views/teacher_profile_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
 import 'package:qemma/features/teacher/data/models/teacher_models.dart';
-
+import 'package:qemma/features/parent/data/repositories/parent_repository.dart';
+import 'package:qemma/features/parent/presentation/routes/parent_routes.dart';
 import 'constants.dart';
 import 'core/cubits/theme_cubit/theme_cubit.dart';
 import 'core/cubits/theme_cubit/theme_state.dart';
@@ -63,6 +64,7 @@ class QemmaApp extends StatelessWidget {
         RepositoryProvider(create: (_) => AuthService(apiClient)),
         RepositoryProvider(create: (_) => StudentRepository(apiClient)),
         RepositoryProvider(create: (_) => TeacherRepository(apiClient)),
+        RepositoryProvider(create: (_) => ParentRepository(apiClient)),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -137,8 +139,11 @@ class _QemaAppView extends StatelessWidget {
                 TeacherNotificationsView.routeName: (_) => const TeacherNotificationsView(),
                 TeacherProfileView.routeName: (_) => const TeacherProfileView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
+                ...ParentRoutes.routes,
               },
               onGenerateRoute: (settings) {
+                final parentRoute = ParentRoutes.onGenerateRoute(settings);
+                if (parentRoute != null) return parentRoute;
                 final route = StudentRoutes.onGenerateRoute(settings);
                 if (route != null) return route;
                 if (settings.name == TeacherEditCourseView.routeName && settings.arguments is TeacherCourse) {
