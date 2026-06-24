@@ -147,6 +147,7 @@ class ParentGradientHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? trailing;
+  final Widget? leading;
   final double height;
 
   const ParentGradientHeader({
@@ -154,35 +155,46 @@ class ParentGradientHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.trailing,
+    this.leading,
     this.height = 160,
   });
 
   @override
   Widget build(BuildContext context) {
+    // FIX: استخدمنا `constraints` بـ minHeight بدل `height` الثابتة، علشان
+    // الـ Container يكبر تلقائيًا لو المحتوى (leading/trailing/title/subtitle)
+    // احتاج مساحة أكبر من القيمة المحددة، بدل ما يحصل RenderFlex overflow.
     return Container(
-      height: height.h,
-      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 0),
+      constraints: BoxConstraints(minHeight: height.h),
+      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
       decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
       child: SafeArea(
         bottom: false,
         child: Column(
+          // FIX: mainAxisSize.min + شيل الـ Spacer() الخارجي، علشان الـ Column
+          // ياخد بالظبط المساحة اللي محتاجها بدون أي افتراض بارتفاع غير محدود.
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (trailing != null)
-              Align(alignment: AlignmentDirectional.topEnd, child: trailing!),
-            const Spacer(),
-          Text(
-            title,
-            style: TextStyles.bold20.copyWith(color: Colors.white),
-          ),
-          if (subtitle != null) ...[
-            SizedBox(height: 4.h),
-            Text(
-              subtitle!,
-              style: TextStyles.regular13.copyWith(color: Colors.white70),
+            Row(
+              children: [
+                if (leading != null) leading!,
+                const Spacer(),
+                if (trailing != null) trailing!,
+              ],
             ),
-          ],
-            SizedBox(height: 16.h),
+            SizedBox(height: 12.h),
+            Text(
+              title,
+              style: TextStyles.bold20.copyWith(color: Colors.white),
+            ),
+            if (subtitle != null) ...[
+              SizedBox(height: 4.h),
+              Text(
+                subtitle!,
+                style: TextStyles.regular13.copyWith(color: Colors.white70),
+              ),
+            ],
           ],
         ),
       ),

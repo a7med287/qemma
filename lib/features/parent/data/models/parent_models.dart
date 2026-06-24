@@ -10,6 +10,8 @@ class ChildSummary {
   final String? behaviorAlert;
   final List<ChildCourse> recentCourses;
   final double overallProgress;
+  final List<ChildTask> tasks;
+  final List<Map<String, dynamic>> notifications;
 
   const ChildSummary({
     required this.id,
@@ -23,6 +25,8 @@ class ChildSummary {
     this.behaviorAlert,
     this.recentCourses = const [],
     this.overallProgress = 0,
+    this.tasks = const [],
+    this.notifications = const [],
   });
 }
 

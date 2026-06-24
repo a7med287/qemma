@@ -6,18 +6,73 @@ abstract final class ParentModelJson {
             ?.map((e) => childCourseFromJson(e))
             .toList() ??
         [];
+    final dashboard = json['dashboard'] as Map<String, dynamic>?;
+    final kpis = json['kpis'] as List? ?? [];
+
+    double fromKpis(String type) {
+      for (final k in kpis) {
+        if (k is Map<String, dynamic>) {
+          final t = k['type'] ?? k['key'] ?? k['metric'] ?? '';
+          if (t == type) return _toDouble(k['value'] ?? k['score']);
+        }
+      }
+      return 0;
+    }
+
+    double averageGrade = _toDouble(json['averageGrade']);
+    if (averageGrade == 0 && dashboard != null) averageGrade = _toDouble(dashboard['averageGrade']);
+    if (averageGrade == 0) averageGrade = fromKpis('avgGrade') + fromKpis('averageGrade');
+
+    double attendance = _toDouble(json['attendanceRate']);
+    if (attendance == 0) attendance = _toDouble(json['attendance']);
+    if (attendance == 0 && dashboard != null) attendance = _toDouble(dashboard['attendance']);
+    if (attendance == 0) attendance = fromKpis('attendance');
+
+    int totalCourses = _toInt(json['totalCourses']);
+    if (totalCourses == 0 && dashboard != null) totalCourses = _toInt(dashboard['totalCourses']);
+    if (totalCourses == 0 && json['enrolledCourses'] is List) totalCourses = (json['enrolledCourses'] as List).length;
+    if (totalCourses == 0) {
+      final stats = json['stats'] as Map<String, dynamic>?;
+      if (stats != null) totalCourses = _toInt(stats['totalEnrolled']);
+    }
+
+    int pendingAssignments = _toInt(json['pendingAssignments']);
+    if (pendingAssignments == 0 && dashboard != null) pendingAssignments = _toInt(dashboard['pendingAssignments']);
+    if (pendingAssignments == 0 && json['tasks'] is List) {
+      pendingAssignments = (json['tasks'] as List).where((t) {
+        if (t is Map<String, dynamic>) return t['type'] == 'assignment' && t['completed'] != true;
+        return false;
+      }).length;
+    }
+
+    int alerts = _toInt(json['alerts']);
+    if (alerts == 0 && json['alerts'] is List) alerts = (json['alerts'] as List).length;
+    if (alerts == 0 && dashboard != null) alerts = _toInt(dashboard['behaviorAlerts']);
+    if (alerts == 0) alerts = _toInt(json['behaviorAlerts']);
+
+    final rawTasks = json['tasks'] as List? ?? [];
+    final tasks = rawTasks.map((t) {
+      if (t is Map<String, dynamic>) return childTaskFromJson(t);
+      return ChildTask(id: '', title: '');
+    }).toList();
+
+    final rawNotifications = json['notifications'] as List? ?? [];
+    final notifications = rawNotifications.whereType<Map<String, dynamic>>().toList();
+
     return ChildSummary(
       id: json['_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
-      gradeLevel: json['gradeLevel'] ?? '',
-      averageGrade: _toDouble(json['averageGrade']),
-      attendanceRate: _toDouble(json['attendanceRate']),
-      totalCourses: _toInt(json['totalCourses']),
-      pendingAssignments: _toInt(json['pendingAssignments']),
-      alerts: _toInt(json['alerts']),
-      behaviorAlert: json['behaviorAlert'],
+      gradeLevel: json['gradeLevel'] ?? json['grade'] ?? '',
+      averageGrade: averageGrade,
+      attendanceRate: attendance,
+      totalCourses: totalCourses,
+      pendingAssignments: pendingAssignments,
+      alerts: alerts,
+      behaviorAlert: json['behaviorAlert'] ?? json['behaviorAlerts']?.toString(),
       recentCourses: courses,
       overallProgress: _toDouble(json['overallProgress']),
+      tasks: tasks,
+      notifications: notifications,
     );
   }
 

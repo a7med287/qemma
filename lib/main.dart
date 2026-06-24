@@ -108,9 +108,19 @@ class _QemaAppView extends StatelessWidget {
               ],
               builder: (context, child) {
                 child = DevicePreview.appBuilder(context, child);
-                return Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: child,
+                return BlocListener<AuthCubit, AuthState>(
+                  listener: (context, authState) {
+                    if (authState is AuthUnauthenticated) {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        LoginView.routeName,
+                        (route) => false,
+                      );
+                    }
+                  },
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: child,
+                  ),
                 );
               },
               initialRoute: Prefs.getBool(kIsOnBoardingSeen)

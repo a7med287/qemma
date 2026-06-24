@@ -57,58 +57,59 @@ class _ReportsViewState extends State<ReportsView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(top: 16.h, bottom: 24.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Text('التقارير', style: TextStyles.bold20.copyWith(color: context.textPrimary)),
-          ),
-          SizedBox(height: 12.h),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
-            child: Row(
-              children: [
-                Expanded(child: _buildDropdown(
-                  value: _reportType,
-                  items: const [
-                    DropdownMenuItem(value: 'overall', child: Text('تقرير شامل', style: TextStyle(fontFamily: 'Cairo'))),
-                    DropdownMenuItem(value: 'academic', child: Text('أكاديمي', style: TextStyle(fontFamily: 'Cairo'))),
-                    DropdownMenuItem(value: 'attendance', child: Text('حضور', style: TextStyle(fontFamily: 'Cairo'))),
-                    DropdownMenuItem(value: 'comparison', child: Text('مقارنة', style: TextStyle(fontFamily: 'Cairo'))),
-                  ],
-                  onChanged: (v) => setState(() => _reportType = v ?? 'overall'),
-                )),
-                SizedBox(width: 8.w),
-                Expanded(child: _buildDropdown(
-                  value: _selectedChildId ?? 'all',
-                  items: [
-                    const DropdownMenuItem(value: 'all', child: Text('جميع الأبناء', style: TextStyle(fontFamily: 'Cairo'))),
-                    ..._children.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, style: const TextStyle(fontFamily: 'Cairo')))),
-                  ],
-                  onChanged: (v) => setState(() => _selectedChildId = v == 'all' ? null : v),
-                )),
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('التقارير', style: TextStyle(fontFamily: 'Cairo')),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.only(top: 16.h, bottom: 24.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              child: Row(
+                children: [
+                  Expanded(child: _buildDropdown(
+                    value: _reportType,
+                    items: const [
+                      DropdownMenuItem(value: 'overall', child: Text('تقرير شامل', style: TextStyle(fontFamily: 'Cairo'))),
+                      DropdownMenuItem(value: 'academic', child: Text('أكاديمي', style: TextStyle(fontFamily: 'Cairo'))),
+                      DropdownMenuItem(value: 'attendance', child: Text('حضور', style: TextStyle(fontFamily: 'Cairo'))),
+                      DropdownMenuItem(value: 'comparison', child: Text('مقارنة', style: TextStyle(fontFamily: 'Cairo'))),
+                    ],
+                    onChanged: (v) => setState(() => _reportType = v ?? 'overall'),
+                  )),
+                  SizedBox(width: 8.w),
+                  Expanded(child: _buildDropdown(
+                    value: _selectedChildId ?? 'all',
+                    items: [
+                      const DropdownMenuItem(value: 'all', child: Text('جميع الأبناء', style: TextStyle(fontFamily: 'Cairo'))),
+                      ..._children.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, style: const TextStyle(fontFamily: 'Cairo')))),
+                    ],
+                    onChanged: (v) => setState(() => _selectedChildId = v == 'all' ? null : v),
+                  )),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
-            child: _buildDropdown(
-              value: _timeRange,
-              items: const [
-                DropdownMenuItem(value: 'week', child: Text('أسبوع', style: TextStyle(fontFamily: 'Cairo'))),
-                DropdownMenuItem(value: 'month', child: Text('شهر', style: TextStyle(fontFamily: 'Cairo'))),
-                DropdownMenuItem(value: 'semester', child: Text('فصل دراسي', style: TextStyle(fontFamily: 'Cairo'))),
-                DropdownMenuItem(value: 'year', child: Text('سنة', style: TextStyle(fontFamily: 'Cairo'))),
-              ],
-              onChanged: (v) => setState(() => _timeRange = v ?? 'semester'),
+            Padding(
+              padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
+              child: _buildDropdown(
+                value: _timeRange,
+                items: const [
+                  DropdownMenuItem(value: 'week', child: Text('أسبوع', style: TextStyle(fontFamily: 'Cairo'))),
+                  DropdownMenuItem(value: 'month', child: Text('شهر', style: TextStyle(fontFamily: 'Cairo'))),
+                  DropdownMenuItem(value: 'semester', child: Text('فصل دراسي', style: TextStyle(fontFamily: 'Cairo'))),
+                  DropdownMenuItem(value: 'year', child: Text('سنة', style: TextStyle(fontFamily: 'Cairo'))),
+                ],
+                onChanged: (v) => setState(() => _timeRange = v ?? 'semester'),
+              ),
             ),
-          ),
-          SizedBox(height: 16.h),
-          _buildReportContent(),
-        ],
+            SizedBox(height: 16.h),
+            _buildReportContent(),
+          ],
+        ),
       ),
     );
   }

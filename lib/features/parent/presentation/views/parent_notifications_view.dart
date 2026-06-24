@@ -166,6 +166,7 @@ class _ParentNotificationsViewState extends State<ParentNotificationsView>
                   ),
               ],
             ),
+            leading: ParentBackButton(),
             height: 150,
           ),
           Material(

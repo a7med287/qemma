@@ -42,11 +42,17 @@ class _ChildProgressViewState extends State<ChildProgressView> {
 
   @override
   Widget build(BuildContext context) {
-    return ParentAsyncBody(
-      loading: _loading,
-      error: _error,
-      onRetry: _load,
-      builder: () => _buildContent(context),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('الأبناء', style: TextStyle(fontFamily: 'Cairo')),
+        centerTitle: true,
+      ),
+      body: ParentAsyncBody(
+        loading: _loading,
+        error: _error,
+        onRetry: _load,
+        builder: () => _buildContent(context),
+      ),
     );
   }
 

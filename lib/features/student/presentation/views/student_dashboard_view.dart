@@ -137,16 +137,16 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
             alignment: Alignment.center,
             children: [
               const Icon(Icons.smart_toy, color: Colors.white, size: 28),
-              if (unread > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: EdgeInsets.all(4.r),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: Text('$unread', style: TextStyles.semiBold13.copyWith(color: Colors.white, fontSize: 10.sp)),
-                  ),
-                ),
+              // if (unread > 0)
+              //   Positioned(
+              //     top: 8,
+              //     right: 8,
+              //     child: Container(
+              //       padding: EdgeInsets.all(4.r),
+              //       decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              //       child: Text('$unread', style: TextStyles.semiBold13.copyWith(color: Colors.white, fontSize: 10.sp)),
+              //     ),
+              //   ),
             ],
           ),
         ),
