@@ -138,7 +138,6 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
       body: Column(
         children: [
           _buildHeader(context, data),
-          _buildTabs(isDark),
           Expanded(
             child: _selectedTab == 0
                 ? _buildHomeTab(context, data, isDark)
@@ -146,6 +145,7 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomNav(isDark),
     );
   }
 
@@ -258,40 +258,45 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
     );
   }
 
-  Widget _buildTabs(bool isDark) {
+  Widget _buildBottomNav(bool isDark) {
+    final items = [
+      _NavItem(label: 'الرئيسية', icon: Icons.home_rounded, index: 0),
+      _NavItem(label: 'الطلاب', icon: Icons.people_rounded, index: 1),
+      _NavItem(label: 'المحادثات', icon: Icons.chat_bubble_rounded, index: 2),
+      _NavItem(label: 'التصحيح', icon: Icons.assignment_turned_in_rounded, index: 3),
+    ];
     return Container(
-      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-      child: Row(
-        children: [
-          Expanded(child: _tabButton('الرئيسية', _selectedTab == 0, isDark, () => setState(() => _selectedTab = 0))),
-          Expanded(child: _tabButton('الطلاب', _selectedTab == 1, isDark, () {
-            setState(() => _selectedTab = 1);
-            _loadStudents();
-          })),
-        ],
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB))),
       ),
-    );
-  }
-
-  Widget _tabButton(String label, bool active, bool isDark, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: active ? const Color(0xFF059669) : Colors.transparent,
-              width: 3,
-            ),
-          ),
-        ),
-        child: Text(label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.bold,
-              color: active ? const Color(0xFF059669) : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)),
-            )),
+      child: BottomNavigationBar(
+        currentIndex: _selectedTab > 1 ? 0 : _selectedTab,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        selectedItemColor: const Color(0xFF059669),
+        unselectedItemColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280),
+        selectedFontSize: 11.sp,
+        unselectedFontSize: 11.sp,
+        selectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700),
+        unselectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w500),
+        elevation: 0,
+        onTap: (i) {
+          switch (i) {
+            case 0:
+              setState(() => _selectedTab = 0);
+            case 1:
+              setState(() { _selectedTab = 1; });
+              _loadStudents();
+            case 2:
+              Navigator.pushNamed(context, AssistantChatView.routeName);
+            case 3:
+              Navigator.pushNamed(context, AssistantGradeExamsView.routeName);
+          }
+        },
+        items: items.map((item) => BottomNavigationBarItem(
+          icon: Icon(item.icon),
+          label: item.label,
+        )).toList(),
       ),
     );
   }
@@ -305,9 +310,7 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
         children: [
           _buildStatsRow(context, data, isDark),
           SizedBox(height: 20.h),
-          _buildQuickActionsTitle(context, isDark),
-          SizedBox(height: 12.h),
-          _buildQuickActionsGrid(context),
+          _buildQuickActions(context, isDark),
           SizedBox(height: 20.h),
           if (data.recentAttempts.isNotEmpty) ...[
             Text('محاولات بانتظار التصحيح',
@@ -316,6 +319,95 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
             ...data.recentAttempts.take(5).map((a) => _buildAttemptItem(a, isDark)),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
+    final items = <_QuickAction>[
+      _QuickAction(
+        title: 'الطلاب', desc: 'عرض الطلاب المسجلين',
+        icon: Icons.people, color: const Color(0xFF2563EB),
+        onTap: () { _loadStudents(); setState(() => _selectedTab = 1); },
+      ),
+      _QuickAction(
+        title: 'المحادثات', desc: 'تواصل مع الطلاب والمدرس',
+        icon: Icons.chat_bubble_outline, color: const Color(0xFF059669),
+        onTap: () => Navigator.pushNamed(context, AssistantChatView.routeName),
+      ),
+      _QuickAction(
+        title: 'تصحيح الاختبارات', desc: 'تصحيح مقالات الطلاب',
+        icon: Icons.assignment_turned_in, color: const Color(0xFFF59E0B),
+        onTap: () => Navigator.pushNamed(context, AssistantGradeExamsView.routeName),
+      ),
+      _QuickAction(
+        title: 'الإشعارات', desc: 'عرض الإشعارات',
+        icon: Icons.notifications, color: const Color(0xFFDB2777),
+        onTap: () => Navigator.pushNamed(context, AssistantNotificationsView.routeName),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('إجراءات سريعة',
+            style: TextStyles.bold18.copyWith(color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E))),
+        SizedBox(height: 12.h),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, childAspectRatio: 1.6, crossAxisSpacing: 10.w, mainAxisSpacing: 10.h,
+          ),
+          itemCount: items.length,
+          itemBuilder: (_, i) => _buildQuickActionCard(items[i], isDark),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionCard(_QuickAction action, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.r),
+          onTap: action.onTap,
+          child: Padding(
+            padding: EdgeInsets.all(12.r),
+            child: Row(
+              children: [
+                Container(
+                  width: 44.w, height: 44.w,
+                  decoration: BoxDecoration(color: action.color.withValues(alpha: .15), borderRadius: BorderRadius.circular(10.r)),
+                  child: Icon(action.icon, color: action.color, size: 22.sp),
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(action.title,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo',
+                              color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E))),
+                      Text(action.desc,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w500, fontFamily: 'Cairo',
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_left, size: 20, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -371,80 +463,7 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
     );
   }
 
-  Widget _buildQuickActionsTitle(BuildContext context, bool isDark) {
-    return Text('إجراءات سريعة',
-        style: TextStyles.bold18.copyWith(color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E)));
-  }
-
-  Widget _buildQuickActionsGrid(BuildContext context) {
-    final actions = [
-      _QuickAction(title: 'الطلاب', desc: 'عرض الطلاب المسجلين', icon: Icons.people, color: const Color(0xFF2563EB),
-          onTap: () { _loadStudents(); setState(() => _selectedTab = 1); }),
-      _QuickAction(title: 'المحادثات', desc: 'تواصل مع الطلاب والمدرس', icon: Icons.chat_bubble_outline, color: const Color(0xFF059669),
-          onTap: () => Navigator.pushNamed(context, AssistantChatView.routeName)),
-      _QuickAction(title: 'تصحيح الاختبارات', desc: 'تصحيح مقالات الطلاب', icon: Icons.assignment_turned_in, color: const Color(0xFFF59E0B),
-          onTap: () => Navigator.pushNamed(context, AssistantGradeExamsView.routeName)),
-      _QuickAction(title: 'الإشعارات', desc: 'عرض الإشعارات', icon: Icons.notifications, color: const Color(0xFFDB2777),
-          onTap: () => Navigator.pushNamed(context, AssistantNotificationsView.routeName)),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, childAspectRatio: 1.6, crossAxisSpacing: 10.w, mainAxisSpacing: 10.h,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (_, i) => _buildQuickActionCard(context, actions[i]),
-    );
-  }
-
-  Widget _buildQuickActionCard(BuildContext context, _QuickAction action) {
-    final isDark = context.isDark;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12.r),
-          onTap: action.onTap,
-          child: Padding(
-            padding: EdgeInsets.all(12.r),
-            child: Row(
-              children: [
-                Container(
-                  width: 44.w, height: 44.w,
-                  decoration: BoxDecoration(color: action.color.withValues(alpha: .15), borderRadius: BorderRadius.circular(10.r)),
-                  child: Icon(action.icon, color: action.color, size: 22.sp),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(action.title,
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700, fontFamily: 'Cairo',
-                              color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1A1A2E))),
-                      Text(action.desc,
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w500, fontFamily: 'Cairo',
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_left, size: 20, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // quick actions removed — moved to bottom nav
 
   Widget _buildAttemptItem(Map<String, dynamic> attempt, bool isDark) {
     final student = attempt['student'] as Map? ?? {};
@@ -963,6 +982,13 @@ class _QuickAction {
   final Color color;
   final VoidCallback? onTap;
   const _QuickAction({required this.title, required this.desc, required this.icon, required this.color, this.onTap});
+}
+
+class _NavItem {
+  final String label;
+  final IconData icon;
+  final int index;
+  const _NavItem({required this.label, required this.icon, required this.index});
 }
 
 class _StatItem2 {
