@@ -81,7 +81,7 @@ class _TeacherGradeExamsViewState extends State<TeacherGradeExamsView> {
     }
   }
 
-  void _reload() { _fetchStats(); _fetchAttempts(); }
+  Future<void> _reload() async { _fetchStats(); _fetchAttempts(); }
 
   void _handleTabChange(int index) {
     setState(() { _selectedStatus = index == 0 ? 'pending' : 'graded'; _page = 1; });
@@ -128,12 +128,6 @@ class _TeacherGradeExamsViewState extends State<TeacherGradeExamsView> {
         ),
         title: Text('مراجعة الاختبارات',
             style: TextStyles.semiBold16.copyWith(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _reload,
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -143,6 +137,7 @@ class _TeacherGradeExamsViewState extends State<TeacherGradeExamsView> {
             attempts: _attempts,
             isPending: _selectedStatus == 'pending',
             loading: _loadingList,
+            onRefresh: _reload,
             onAutoGrade: _handleAutoGrade,
             onView: _handleOpenView,
             page: _page,

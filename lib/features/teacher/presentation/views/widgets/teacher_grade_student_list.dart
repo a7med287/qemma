@@ -9,6 +9,7 @@ class TeacherGradeStudentList extends StatelessWidget {
     required this.attempts,
     required this.isPending,
     required this.loading,
+    this.onRefresh,
     this.onAutoGrade,
     this.onView,
     this.page = 1,
@@ -20,6 +21,7 @@ class TeacherGradeStudentList extends StatelessWidget {
   final List<Map<String, dynamic>> attempts;
   final bool isPending;
   final bool loading;
+  final Future<void> Function()? onRefresh;
   final Function(String attemptId)? onAutoGrade;
   final Function(String attemptId)? onView;
   final int page;
@@ -45,25 +47,28 @@ class TeacherGradeStudentList extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.all(16.w),
-            itemCount: attempts.length,
-            separatorBuilder: (_, __) => SizedBox(height: 8.h),
-            itemBuilder: (context, index) {
-              final attempt = attempts[index];
-              final attemptId = attempt['id']?.toString() ?? '';
-              return TeacherGradeExamCard(
-                attempt: attempt,
-                isPending: isPending,
-                onAutoGrade: onAutoGrade != null ? () => onAutoGrade!(attemptId) : null,
-                onView: onView != null ? () => onView!(attemptId) : null,
-              );
-            },
+      return Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: onRefresh ?? () async {},
+              child: ListView.separated(
+                padding: EdgeInsets.all(16.w),
+                itemCount: attempts.length,
+                separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                itemBuilder: (context, index) {
+                  final attempt = attempts[index];
+                  final attemptId = attempt['id']?.toString() ?? '';
+                  return TeacherGradeExamCard(
+                    attempt: attempt,
+                    isPending: isPending,
+                    onAutoGrade: onAutoGrade != null ? () => onAutoGrade!(attemptId) : null,
+                    onView: onView != null ? () => onView!(attemptId) : null,
+                  );
+                },
+              ),
+            ),
           ),
-        ),
         if (totalPages > 1)
           Container(
             padding: EdgeInsets.all(12.w),

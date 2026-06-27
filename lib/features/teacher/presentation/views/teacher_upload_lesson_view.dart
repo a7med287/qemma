@@ -116,7 +116,7 @@ class _TeacherUploadLessonViewState extends State<TeacherUploadLessonView> {
   }
 
   Future<void> _pickPdf() async {
-    final result = await FilePicker.platform.pickFiles(allowedExtensions: ['pdf']);
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
     if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
       if (file.size > 50 * 1024 * 1024) {
