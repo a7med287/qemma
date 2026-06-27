@@ -129,7 +129,7 @@ class _DashboardBody extends StatelessWidget {
                       TeacherDashboardStats(data: data),
                       SizedBox(height: 24.h),
                       TeacherDashboardQuickActions(),
-                      SizedBox(height: 24.h),
+                      SizedBox(height: 69.h),
 
                     ]),
                   ),

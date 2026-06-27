@@ -34,6 +34,8 @@ class _TeacherAnalyticsViewState extends State<TeacherAnalyticsView> {
   bool _coursesLoading = false;
   String _selectedCourseId = '';
 
+  bool _exporting = false;
+
   // AI Analysis
   Map<String, dynamic>? _aiAnalysis;
   bool _aiLoading = false;
@@ -199,6 +201,7 @@ class _TeacherAnalyticsViewState extends State<TeacherAnalyticsView> {
   }
 
   Future<void> _handleExport() async {
+    setState(() => _exporting = true);
     try {
       final result = await _repo.exportAnalytics();
       final bytes = result['bytes'] as List<int>;
@@ -212,6 +215,8 @@ class _TeacherAnalyticsViewState extends State<TeacherAnalyticsView> {
       }
     } catch (_) {
       if (mounted) buildSnackBar(context, 'فشل تصدير التقرير', isError: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -312,39 +317,43 @@ class _TeacherAnalyticsViewState extends State<TeacherAnalyticsView> {
       );
     }
 
-    return ListView(
-      padding: EdgeInsets.all(16.r),
-      children: [
-        _buildToolbar(context),
-        SizedBox(height: 20.h),
-        TeacherAnalyticsStats(summary: _summary),
-        SizedBox(height: 20.h),
-        TeacherAnalyticsCharts(
-          enrollmentTrend: _enrollmentTrend,
-          scoreDist: _scoreDist,
-          topStudents: _topStudents,
-          coursePerformance: _coursePerformance,
-          summary: _summary,
-        ),
-        SizedBox(height: 20.h),
-        TeacherAnalyticsAiSection(
-          analysis: _aiAnalysis ?? {},
-          courseTitle: _courses.firstWhere(
-            (c) => c['id'] == _selectedCourseId,
-            orElse: () => <String, dynamic>{},
-          )['title'] ?? '',
-          isLoading: _aiLoading,
-          error: _aiError,
-          onDismissError: () => setState(() => _aiError = null),
-        ),
-        SizedBox(height: 20.h),
-        TeacherAnalyticsLessonRatings(
-          ratings: _lessonRatings,
-          isLoading: _lessonRatingsLoading,
-        ),
-        SizedBox(height: 20.h),
-        TeacherAnalyticsTeacherRating(rating: _teacherRating),
-      ],
+    return RefreshIndicator(
+      onRefresh: _fetchReport,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(16.r),
+        children: [
+          _buildToolbar(context),
+          SizedBox(height: 20.h),
+          TeacherAnalyticsStats(summary: _summary),
+          SizedBox(height: 20.h),
+          TeacherAnalyticsCharts(
+            enrollmentTrend: _enrollmentTrend,
+            scoreDist: _scoreDist,
+            topStudents: _topStudents,
+            coursePerformance: _coursePerformance,
+            summary: _summary,
+          ),
+          SizedBox(height: 20.h),
+          TeacherAnalyticsAiSection(
+            analysis: _aiAnalysis ?? {},
+            courseTitle: _courses.firstWhere(
+              (c) => c['id'] == _selectedCourseId,
+              orElse: () => <String, dynamic>{},
+            )['title'] ?? '',
+            isLoading: _aiLoading,
+            error: _aiError,
+            onDismissError: () => setState(() => _aiError = null),
+          ),
+          SizedBox(height: 20.h),
+          TeacherAnalyticsLessonRatings(
+            ratings: _lessonRatings,
+            isLoading: _lessonRatingsLoading,
+          ),
+          SizedBox(height: 20.h),
+          TeacherAnalyticsTeacherRating(rating: _teacherRating),
+        ],
+      ),
     );
   }
 
@@ -437,22 +446,13 @@ class _TeacherAnalyticsViewState extends State<TeacherAnalyticsView> {
                 ),
               ),
               SizedBox(width: 8.w),
-              IconButton(
-                onPressed: _fetchReport,
-                icon: const Icon(Icons.refresh),
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  foregroundColor: isDark ? const Color(0xFFF1F5F9) : null,
-                  side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-                ),
-                constraints: BoxConstraints(minWidth: 36.w, minHeight: 36.w),
-                padding: EdgeInsets.zero,
-              ),
-              SizedBox(width: 8.w),
               OutlinedButton.icon(
-                onPressed: _handleExport,
-                icon: const Icon(Icons.download, size: 16),
-                label: Text('تصدير', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 11.sp)),
+                onPressed: _exporting ? null : _handleExport,
+                icon: _exporting
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 1.5))
+                    : const Icon(Icons.download, size: 16),
+                label: Text(_exporting ? 'جارٍ التصدير...' : 'تصدير',
+                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 11.sp)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: isDark ? const Color(0xFFF1F5F9) : null,
                   side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
