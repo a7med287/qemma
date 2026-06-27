@@ -170,9 +170,11 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
       }
       buildSnackBar(context, 'تم إضافة $added سؤال بنجاح!');
       await _fetchContest();
-      // Reset form
-      for (final c in _textControllers) { c.clear(); }
-      for (final list in _optionControllers) { for (final c in list) { c.clear(); } }
+      // Reset form: dispose all controllers and clear lists
+      for (final c in _textControllers) { c.dispose(); }
+      for (final list in _optionControllers) { for (final c in list) { c.dispose(); } }
+      _textControllers.clear();
+      _optionControllers.clear();
       _newQuestions.clear();
       _addNewQuestion();
     } catch (_) {
