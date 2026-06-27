@@ -427,68 +427,60 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
   }
 
   Widget _buildNewQuestionsSection(bool isDark, int? assignedMark) {
-    return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('إضافة أسئلة جديدة (${_newQuestions.length})',
-                        style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 14.sp, color: context.textPrimary)),
-                    SizedBox(height: 4.h),
-                    Text('أضف أسئلة اختيار من متعدد أو صح/خطأ',
-                        style: TextStyle(fontFamily: 'Cairo', fontSize: 10.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 36.h,
-                child: ElevatedButton.icon(
-                  onPressed: _addNewQuestion,
-                  icon: const Icon(Icons.add, size: 16),
-                  label: Text('إضافة سؤال', style: TextStyle(fontFamily: 'Cairo', fontSize: 10.sp, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          for (int i = 0; i < _newQuestions.length; i++)
-            _buildNewQuestionCard(i, isDark, assignedMark),
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _saving ? null : _handleSubmit,
-              icon: _saving ? SizedBox(width: 16.r, height: 16.r, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.save),
-              label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الأسئلة (${_newQuestions.length})',
-                  style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.w900)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF16A34A),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                elevation: 0,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('إضافة أسئلة جديدة (${_newQuestions.length})',
+                      style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 16.sp, color: context.textPrimary)),
+                  SizedBox(height: 4.h),
+                  Text('أضف أسئلة اختيار من متعدد أو صح/خطأ',
+                      style: TextStyle(fontFamily: 'Cairo', fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                ],
               ),
             ),
+            SizedBox(
+              height: 40.h,
+              child: ElevatedButton.icon(
+                onPressed: _addNewQuestion,
+                icon: const Icon(Icons.add, size: 18),
+                label: Text('إضافة سؤال', style: TextStyle(fontFamily: 'Cairo', fontSize: 12.sp, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 16.h),
+        for (int i = 0; i < _newQuestions.length; i++)
+          _buildNewQuestionCard(i, isDark, assignedMark),
+        SizedBox(height: 16.h),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _saving ? null : _handleSubmit,
+            icon: _saving ? SizedBox(width: 20.r, height: 20.r, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.save),
+            label: Text(_saving ? 'جاري الحفظ...' : 'حفظ الأسئلة (${_newQuestions.length})',
+                style: TextStyle(fontFamily: 'Cairo', fontSize: 14.sp, fontWeight: FontWeight.w900)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+              elevation: 0,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -496,11 +488,11 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
     final q = _newQuestions[index];
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(12.r),
+      margin: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(8.r),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
       ),
       child: Column(
@@ -509,13 +501,13 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE0E7FF),
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE0E7FF),
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: Text('السؤال ${index + 1}',
-                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 10.sp,
+                    style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 13.sp,
                         color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF3730A3))),
               ),
               const Spacer(),
@@ -523,61 +515,61 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
                 _newQuestions[index].type = 'mcq';
                 setState(() {});
               }),
-              SizedBox(width: 6.w),
+              SizedBox(width: 8.w),
               _typeChip('صح/خطأ', q.type == 'true_false', const Color(0xFF22C55E), () {
                 _newQuestions[index].type = 'true_false';
                 setState(() {});
               }),
-              SizedBox(width: 6.w),
+              SizedBox(width: 8.w),
               InkWell(
                 onTap: () => _removeNewQuestion(index),
-                child: Icon(Icons.delete_outline, color: Colors.red, size: 18.r),
+                child: Icon(Icons.delete_outline, color: Colors.red, size: 22.r),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           if (assignedMark != null)
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(8.r),
-              margin: EdgeInsets.only(bottom: 8.h),
+              padding: EdgeInsets.all(12.r),
+              margin: EdgeInsets.only(bottom: 12.h),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(6.r),
+                borderRadius: BorderRadius.circular(8.r),
                 border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('الدرجة (تُحدد تلقائياً حسب صعوبة المسابقة)',
-                      style: TextStyle(fontFamily: 'Cairo', fontSize: 9.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-                  SizedBox(height: 2.h),
+                      style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                  SizedBox(height: 4.h),
                   Text('$assignedMark درجة',
-                      style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w800, fontSize: 12.sp, color: context.textPrimary)),
+                      style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w800, fontSize: 14.sp, color: context.textPrimary)),
                 ],
               ),
             ),
           TextField(
             controller: _textControllers[index],
-            maxLines: 2,
+            maxLines: 3,
             decoration: InputDecoration(
               hintText: 'اكتب السؤال هنا...',
-              hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB))),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+              hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB))),
+              contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
               filled: true,
               fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             ),
-            style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, color: context.textPrimary),
+            style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, color: context.textPrimary),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 12.h),
           if (q.type == 'mcq') ...[
             Text('الخيارات: (اختر الإجابة الصحيحة)',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, fontWeight: FontWeight.w700, color: context.textPrimary)),
-            SizedBox(height: 6.h),
+                style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.w700, color: context.textPrimary)),
+            SizedBox(height: 8.h),
             ...List.generate(q.options.length, (optIndex) {
               return Padding(
-                padding: EdgeInsets.only(bottom: 6.h),
+                padding: EdgeInsets.only(bottom: 8.h),
                 child: Row(
                   children: [
                     Radio<int>(
@@ -590,27 +582,27 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
                     ),
                     Expanded(
                       child: SizedBox(
-                        height: 36.h,
+                        height: 44.h,
                         child: TextField(
                           controller: _optionControllers[index][optIndex],
                           decoration: InputDecoration(
                             hintText: 'الخيار ${optIndex + 1}',
-                            hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 10.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(6.r)),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                            hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 12.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                             filled: true,
                             fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           ),
-                          style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, color: context.textPrimary),
+                          style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, color: context.textPrimary),
                         ),
                       ),
                     ),
                     if (q.options.length > 2)
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 16),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                         onPressed: () => _removeOption(index, optIndex),
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(minWidth: 28.r, minHeight: 28.r),
+                        constraints: BoxConstraints(minWidth: 36.r, minHeight: 36.r),
                       ),
                   ],
                 ),
@@ -618,41 +610,41 @@ class _AddContestQuestionsViewState extends State<AddContestQuestionsView> {
             }),
             TextButton.icon(
               onPressed: () => _addOption(index),
-              icon: const Icon(Icons.add, size: 14),
-              label: Text('إضافة خيار', style: TextStyle(fontFamily: 'Cairo', fontSize: 10.sp, fontWeight: FontWeight.w700)),
+              icon: const Icon(Icons.add, size: 16),
+              label: Text('إضافة خيار', style: TextStyle(fontFamily: 'Cairo', fontSize: 12.sp, fontWeight: FontWeight.w700)),
               style: TextButton.styleFrom(foregroundColor: context.textPrimary),
             ),
           ] else ...[
             Text('الإجابة الصحيحة:',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, fontWeight: FontWeight.w700, color: context.textPrimary)),
-            SizedBox(height: 6.h),
+                style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.w700, color: context.textPrimary)),
+            SizedBox(height: 8.h),
             Row(
               children: [
                 SizedBox(
-                  height: 34.h,
+                  height: 44.h,
                   child: ElevatedButton(
                     onPressed: () { _newQuestions[index].tfCorrect = true; setState(() {}); },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: q.tfCorrect ? const Color(0xFF22C55E) : (isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
                       foregroundColor: q.tfCorrect ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.r)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                       elevation: 0,
                     ),
-                    child: Text('صح', style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, fontWeight: FontWeight.w700)),
+                    child: Text('صح', style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.w700)),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 12.w),
                 SizedBox(
-                  height: 34.h,
+                  height: 44.h,
                   child: ElevatedButton(
                     onPressed: () { _newQuestions[index].tfCorrect = false; setState(() {}); },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: !q.tfCorrect ? const Color(0xFFEF4444) : (isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
                       foregroundColor: !q.tfCorrect ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.r)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                       elevation: 0,
                     ),
-                    child: Text('خطأ', style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, fontWeight: FontWeight.w700)),
+                    child: Text('خطأ', style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
