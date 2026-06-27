@@ -200,7 +200,43 @@ class LiveClassSetupForm extends StatelessWidget {
             ...courses.map((c) {
               final id = (c['id'] ?? c['_id'] ?? '') as String;
               final title = (c['title'] ?? '') as String;
-              return DropdownMenuItem(value: id, child: Text(title));
+              final count = ((c['_count'] as Map<String, dynamic>?)
+                          ?['enrollments'] as int?) ??
+                      (c['enrollments'] as int?) ??
+                      (c['studentCount'] as int?) ??
+                      0;
+              return DropdownMenuItem(
+                value: id,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(title,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 13.sp,
+                            color: fieldTextColor(context),
+                          )),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 6.w, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Text('$count طالب',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 11.sp,
+                            color: const Color(0xFF7C3AED),
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ),
+                  ],
+                ),
+              );
             }),
           ],
           onChanged: (v) => onCourseChanged(v ?? ''),

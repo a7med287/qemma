@@ -1,31 +1,67 @@
 import 'package:flutter/material.dart';
 
-void showEndConfirmDialog(BuildContext context, VoidCallback onEndClass) {
-  showDialog(
-    context: context,
-    builder: (ctx) => AlertDialog(
+class LiveClassEndConfirmDialog extends StatefulWidget {
+  final Future<void> Function() onEndClass;
+  const LiveClassEndConfirmDialog({super.key, required this.onEndClass});
+
+  @override
+  State<LiveClassEndConfirmDialog> createState() =>
+      _LiveClassEndConfirmDialogState();
+}
+
+class _LiveClassEndConfirmDialogState
+    extends State<LiveClassEndConfirmDialog> {
+  bool _submitting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
       title: const Text('إنهاء الحصة',
           style: TextStyle(fontFamily: 'Cairo')),
       content: const Text('هل أنت متأكد من إنهاء الحصة؟',
           style: TextStyle(fontFamily: 'Cairo')),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(ctx),
+          onPressed: _submitting ? null : () => Navigator.pop(context, false),
           child: const Text('إلغاء',
               style: TextStyle(fontFamily: 'Cairo')),
         ),
         TextButton(
-          onPressed: () {
-            Navigator.pop(ctx);
-            onEndClass();
-          },
-          child: const Text('إنهاء',
-              style: TextStyle(
-                  fontFamily: 'Cairo', color: Colors.red)),
+          onPressed: _submitting
+              ? null
+              : () async {
+                  setState(() => _submitting = true);
+                  try {
+                    await widget.onEndClass();
+                    if (mounted) Navigator.pop(context, true);
+                  } catch (_) {
+                    if (mounted) setState(() => _submitting = false);
+                  }
+                },
+          child: _submitting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.red),
+                )
+              : const Text('إنهاء',
+                  style: TextStyle(
+                      fontFamily: 'Cairo', color: Colors.red)),
         ),
       ],
-    ),
-  );
+    );
+  }
+}
+
+Future<bool> showEndConfirmDialog(
+    BuildContext context, Future<void> Function() onEndClass) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (_) =>
+            LiveClassEndConfirmDialog(onEndClass: onEndClass),
+      ) ??
+      false;
 }
 
 void showParticipantsDialog(

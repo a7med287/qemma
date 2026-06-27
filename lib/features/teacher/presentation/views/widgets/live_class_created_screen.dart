@@ -3,9 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/utils/app_text_styles.dart';
 import 'teacher_theme_helpers.dart';
 
-class LiveClassCreatedScreen extends StatelessWidget {
+class LiveClassCreatedScreen extends StatefulWidget {
   final Map<String, dynamic>? createdRoom;
-  final VoidCallback onStartLive;
+  final Future<void> Function() onStartLive;
   final VoidCallback onCancelRoom;
   final void Function(String text, String label) onCopyToClipboard;
   final bool isDark;
@@ -20,10 +20,27 @@ class LiveClassCreatedScreen extends StatelessWidget {
   });
 
   @override
+  State<LiveClassCreatedScreen> createState() => _LiveClassCreatedScreenState();
+}
+
+class _LiveClassCreatedScreenState extends State<LiveClassCreatedScreen> {
+  bool _starting = false;
+
+  Future<void> _handleStartLive() async {
+    if (_starting) return;
+    setState(() => _starting = true);
+    try {
+      await widget.onStartLive();
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final roomCode = (createdRoom?['roomCode'] ??
-        createdRoom?['code'] ??
-        createdRoom?['id'] ??
+    final roomCode = (widget.createdRoom?['roomCode'] ??
+        widget.createdRoom?['code'] ??
+        widget.createdRoom?['id'] ??
         '') as String;
 
     return Column(
@@ -89,7 +106,7 @@ class LiveClassCreatedScreen extends StatelessWidget {
           SizedBox(height: 8.h),
           TextButton.icon(
             onPressed: () =>
-                onCopyToClipboard(roomCode, 'كود الحصة'),
+                widget.onCopyToClipboard(roomCode, 'كود الحصة'),
             icon:
                 const Icon(Icons.copy, color: Colors.white70, size: 16),
             label: Text('نسخ الكود',
@@ -119,7 +136,7 @@ class LiveClassCreatedScreen extends StatelessWidget {
                   .copyWith(color: fieldTextColor(context))),
           SizedBox(height: 8.h),
           _detailRow(context, 'العنوان',
-              (createdRoom?['title'] ?? '') as String),
+              (widget.createdRoom?['title'] ?? '') as String),
           _detailRow(context, 'الحالة', 'بانتظار البدء'),
         ],
       ),
@@ -157,10 +174,16 @@ class LiveClassCreatedScreen extends StatelessWidget {
           child: SizedBox(
             height: 48.h,
             child: ElevatedButton.icon(
-              onPressed: onStartLive,
-              icon:
-                  const Icon(Icons.play_arrow, color: Colors.white),
-              label: Text('بدء الحصة الآن',
+              onPressed: _starting ? null : _handleStartLive,
+              icon: _starting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.play_arrow, color: Colors.white),
+              label: Text(_starting ? 'جاري البدء...' : 'بدء الحصة الآن',
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 14.sp,
@@ -181,7 +204,7 @@ class LiveClassCreatedScreen extends StatelessWidget {
           child: SizedBox(
             height: 48.h,
             child: OutlinedButton.icon(
-              onPressed: onCancelRoom,
+              onPressed: _starting ? null : widget.onCancelRoom,
               icon: const Icon(Icons.close,
                   color: Color(0xFFEF4444)),
               label: Text('إلغاء الحصة',

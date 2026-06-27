@@ -186,12 +186,16 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView>
       _timer?.cancel();
 
       await _repo.endLiveRoom(_createdRoom!['id']);
-      buildSnackBar(context, 'انتهت الحصة بنجاح');
-      if (mounted) Navigator.maybePop(context, true);
+      if (mounted) buildSnackBar(context, 'انتهت الحصة بنجاح');
     } catch (_) {
-      buildSnackBar(context, 'حدث خطأ أثناء إنهاء الحصة', isError: true);
-      if (mounted) Navigator.maybePop(context, true);
+      if (mounted) buildSnackBar(context, 'حدث خطأ أثناء إنهاء الحصة', isError: true);
+      rethrow;
     }
+  }
+
+  Future<void> _showEndConfirmDialog() async {
+    final ended = await showEndConfirmDialog(context, _handleEndClass);
+    if (ended && mounted) Navigator.maybePop(context, true);
   }
 
   Future<void> _handleCancelRoom() async {
@@ -212,9 +216,6 @@ class _TeacherLiveClassViewState extends State<TeacherLiveClassView>
   void _copyToClipboard(String text, String label) {
     buildSnackBar(context, 'تم نسخ $label!');
   }
-
-  void _showEndConfirmDialog() =>
-      showEndConfirmDialog(context, _handleEndClass);
 
   void _showParticipantsDialog() =>
       showParticipantsDialog(context, _participants);
