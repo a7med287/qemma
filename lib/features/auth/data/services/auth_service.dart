@@ -67,6 +67,7 @@ class AuthService {
     String? subject,
     String? teacherName,
     String? studentUsername,
+    String? phone,
   }) async {
     final res = await _dio.post('/auth/clerk', data: {
       'clerkUserId': clerkUserId,
@@ -75,6 +76,7 @@ class AuthService {
       if (subject != null) 'subject': subject,
       if (teacherName != null) 'teacherName': teacherName,
       if (studentUsername != null) 'studentUsername': studentUsername,
+      if (phone != null) 'phone': phone,
     });
     final data = res.data['data'];
     await _saveSession(data);

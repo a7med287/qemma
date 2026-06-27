@@ -98,7 +98,7 @@ class RegisterRequest {
   final String email;
   final String password;
   final UserRole role;
-  final String? phone;
+  final String phone;
   final String? division;
   final String? subject;
   final String? teacherName;
@@ -109,7 +109,7 @@ class RegisterRequest {
     required this.email,
     required this.password,
     required this.role,
-    this.phone,
+    required this.phone,
     this.division,
     this.subject,
     this.teacherName,
@@ -122,8 +122,8 @@ class RegisterRequest {
       'email':    email,
       'password': password,
       'role':     role.value,
+      'phone':    phone,
     };
-    if (phone != null && phone!.isNotEmpty) map['phone'] = phone;
     if (role == UserRole.student && division != null) map['division'] = division;
     if ((role == UserRole.teacher || role == UserRole.assistantTeacher) && subject != null) {
       map['subject'] = subject;

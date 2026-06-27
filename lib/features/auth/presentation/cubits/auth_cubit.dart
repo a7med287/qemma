@@ -96,6 +96,7 @@ class AuthCubit extends Cubit<AuthState> {
     String? subject,
     String? teacherName,
     String? studentUsername,
+    String? phone,
   }) async {
     emit(AuthLoading());
     try {
@@ -106,6 +107,7 @@ class AuthCubit extends Cubit<AuthState> {
         subject:         subject,
         teacherName:     teacherName,
         studentUsername: studentUsername,
+        phone:           phone,
       );
       emit(AuthAuthenticated(user));
       return user;

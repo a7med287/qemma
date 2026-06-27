@@ -137,7 +137,7 @@ class RegisterLocalFormBody extends StatelessWidget {
         emailField(controller: emailPrefixCtrl, errorText: errors['email'], onChanged: (_) => onErrorRemove('email'), context: context),
         SizedBox(height: 12.h),
         AuthTextField(
-          label: 'رقم الهاتف (اختياري)',
+          label: 'رقم الهاتف *',
           controller: phoneCtrl,
           keyboardType: TextInputType.phone,
           hint: '01012345678',

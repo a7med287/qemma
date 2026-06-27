@@ -97,7 +97,9 @@ class _RegisterViewState extends State<RegisterView> {
     if (_nameCtrl.text.trim().length < 2) errors['name'] = 'الاسم يجب أن يكون حرفين على الأقل';
 
     final phone = _phoneCtrl.text.trim();
-    if (phone.isNotEmpty && !RegExp(r'^01[0-2,5]{1}[0-9]{8}$').hasMatch(phone)) {
+    if (phone.isEmpty) {
+      errors['phone'] = 'رقم الهاتف مطلوب';
+    } else if (!RegExp(r'^01[0-2,5]{1}[0-9]{8}$').hasMatch(phone)) {
       errors['phone'] = 'رقم الهاتف غير صالح (مثال: 01012345678)';
     }
     if (_role == UserRole.student && (_division == null || _division!.isEmpty)) {
@@ -126,7 +128,7 @@ class _RegisterViewState extends State<RegisterView> {
         email:           _fullEmail,
         password:        _passwordCtrl.text,
         role:            _role,
-        phone:           _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phone:           _phoneCtrl.text.trim(),
         division:        _division,
         subject:         _subject,
         teacherName:     teacherName,
