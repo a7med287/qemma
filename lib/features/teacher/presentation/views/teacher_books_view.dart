@@ -24,6 +24,7 @@ class _TeacherBooksViewState extends State<TeacherBooksView> {
   String? _teacherSubject;
 
   bool _openView = false;
+  bool _openDelete = false;
   Map<String, dynamic>? _selectedBook;
 
   @override
@@ -71,10 +72,13 @@ class _TeacherBooksViewState extends State<TeacherBooksView> {
       await context
           .read<TeacherRepository>()
           .deleteBook(_selectedBook!['id']);
-      _books.removeWhere((b) => b['id'] == _selectedBook!['id']);
+      if (!mounted) return;
+      setState(() {
+        _books.removeWhere((b) => b['id'] == _selectedBook!['id']);
+        _openDelete = false;
+        _selectedBook = null;
+      });
       _showToast('تم حذف الكتاب بنجاح');
-      _openView = false;
-      _selectedBook = null;
     } on Failure catch (e) {
       _showToast(e.message, error: true);
     } catch (_) {
@@ -128,7 +132,7 @@ class _TeacherBooksViewState extends State<TeacherBooksView> {
                           onTogglePublish: _togglePublish,
                           onDeleteBook: (book) => setState(() {
                             _selectedBook = book;
-                            _openView = true;
+                            _openDelete = true;
                           }),
                           onCreateBook: () =>
                               Navigator.pushNamed(
@@ -156,6 +160,16 @@ class _TeacherBooksViewState extends State<TeacherBooksView> {
                     TeacherEditBookView.routeName,
                     arguments: _selectedBook)
                 .then((_) => _fetchData()),
+          ),
+        if (_openDelete && _selectedBook != null)
+          TeacherBooksDeleteDialog(
+            book: _selectedBook!,
+            isDark: isDark,
+            onCancel: () => setState(() {
+              _openDelete = false;
+              _selectedBook = null;
+            }),
+            onConfirm: () => _deleteBook(),
           ),
       ],
     );

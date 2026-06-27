@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'teacher_theme_helpers.dart';
 
 class TeacherBooksDetail extends StatelessWidget {
   const TeacherBooksDetail({
@@ -113,6 +112,10 @@ class TeacherBooksDetail extends StatelessWidget {
                         Expanded(child: _infoChip('السعر', price > 0 ? '${price.toInt()} ج.م' : 'مجاني',
                             price > 0 ? const Color(0xFFB45309) : const Color(0xFF16A34A),
                             price > 0 ? const Color(0xFFFEFCE8) : const Color(0xFFF0FDF4))),
+                        SizedBox(width: 8.w),
+                        Expanded(child: _infoChip('النوع', book['bookType'] == 'pdf' ? 'PDF' : 'مطبوع',
+                            book['bookType'] == 'pdf' ? const Color(0xFFB45309) : const Color(0xFF2563EB),
+                            book['bookType'] == 'pdf' ? const Color(0xFFFEFCE8) : const Color(0xFFEFF6FF))),
                       ],
                     ),
                     Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
@@ -126,7 +129,15 @@ class TeacherBooksDetail extends StatelessWidget {
                       children: [
                         Expanded(child: _statBox('${book['purchases'] ?? 0}', 'مبيعة', const Color(0xFF2563EB), const Color(0xFFEFF6FF))),
                         SizedBox(width: 8.w),
-                        Expanded(child: _statBox((book['createdAt'] as String?)?.split('T')[0] ?? '', 'تاريخ الإضافة', const Color(0xFFDB2777), const Color(0xFFFDF2F8))),
+                        Expanded(child: _statBox(price > 0 ? '${price.toInt()} ج.م' : 'مجاني', 'السعر',
+                            price > 0 ? const Color(0xFFB45309) : const Color(0xFF16A34A),
+                            price > 0 ? const Color(0xFFFEFCE8) : const Color(0xFFF0FDF4))),
+                        SizedBox(width: 8.w),
+                        Expanded(child: _statBox(price > 0 ? '${(price * 0.9 * (book['purchases'] ?? 0)).toStringAsFixed(2)} ج.م' : '—', 'صافي أرباحك',
+                            const Color(0xFF059669), const Color(0xFFF0FDF4))),
+                        SizedBox(width: 8.w),
+                        Expanded(child: _statBox((book['createdAt'] as String?)?.split('T')[0] ?? '', 'تاريخ الإضافة',
+                            const Color(0xFFDB2777), const Color(0xFFFDF2F8))),
                       ],
                     ),
                   ],
@@ -201,7 +212,7 @@ class TeacherBooksDetail extends StatelessWidget {
   }
 }
 
-class TeacherBooksDeleteDialog extends StatelessWidget {
+class TeacherBooksDeleteDialog extends StatefulWidget {
   const TeacherBooksDeleteDialog({
     super.key,
     required this.book,
@@ -213,13 +224,20 @@ class TeacherBooksDeleteDialog extends StatelessWidget {
   final Map<String, dynamic> book;
   final bool isDark;
   final VoidCallback onCancel;
-  final VoidCallback onConfirm;
+  final Future<void> Function() onConfirm;
+
+  @override
+  State<TeacherBooksDeleteDialog> createState() => _TeacherBooksDeleteDialogState();
+}
+
+class _TeacherBooksDeleteDialogState extends State<TeacherBooksDeleteDialog> {
+  bool _submitting = false;
 
   @override
   Widget build(BuildContext context) {
-    final price = (book['price'] ?? 0) is int ? (book['price'] as int).toDouble() : (book['price'] ?? 0.0).toDouble();
+    final price = (widget.book['price'] ?? 0) is int ? (widget.book['price'] as int).toDouble() : (widget.book['price'] ?? 0.0).toDouble();
     return Dialog(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      backgroundColor: widget.isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       child: Padding(
         padding: EdgeInsets.all(16.r),
@@ -233,13 +251,13 @@ class TeacherBooksDeleteDialog extends StatelessWidget {
                 SizedBox(width: 8.w),
                 Text('تأكيد الحذف',
                     style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 16.sp,
-                        color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+                        color: widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
               ],
             ),
             SizedBox(height: 12.h),
             Text('هل أنت متأكد من حذف هذا الكتاب؟',
                 style: TextStyle(fontFamily: 'Cairo', fontSize: 13.sp,
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+                    color: widget.isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
             SizedBox(height: 8.h),
             Container(
               padding: EdgeInsets.all(12.r),
@@ -251,9 +269,9 @@ class TeacherBooksDeleteDialog extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(book['title'] ?? '',
+                  Text(widget.book['title'] ?? '',
                       style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12, color: Color(0xFF991B1B))),
-                  Text('${book['grade'] ?? ''} • ${book['subject'] ?? ''} • ${price > 0 ? '${price.toInt()} ج.م' : 'مجاني'}',
+                  Text('${widget.book['grade'] ?? ''} • ${widget.book['subject'] ?? ''} • ${price > 0 ? '${price.toInt()} ج.م' : 'مجاني'}',
                       style: const TextStyle(fontFamily: 'Cairo', fontSize: 10, color: Color(0xFFDC2626))),
                   const SizedBox(height: 4),
                   const Text('لن تتمكن من استرجاع هذا الكتاب بعد الحذف',
@@ -266,23 +284,25 @@ class TeacherBooksDeleteDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: onCancel,
+                    onPressed: _submitting ? null : widget.onCancel,
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 10.h),
-                      side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
+                      side: BorderSide(color: widget.isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                     ),
                     child: Text('إلغاء',
                         style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12.sp,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
+                            color: widget.isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280))),
                   ),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: onConfirm,
-                    icon: const Icon(Icons.delete, size: 16),
-                    label: Text('حذف الكتاب',
+                    onPressed: _submitting ? null : () => _handleConfirm(),
+                    icon: _submitting
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.delete, size: 16),
+                    label: Text(_submitting ? 'جاري الحذف...' : 'حذف الكتاب',
                         style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 12.sp)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEF4444),
@@ -298,5 +318,14 @@ class TeacherBooksDeleteDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleConfirm() async {
+    setState(() => _submitting = true);
+    try {
+      await widget.onConfirm();
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 }

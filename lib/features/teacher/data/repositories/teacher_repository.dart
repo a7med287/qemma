@@ -252,6 +252,7 @@ class TeacherRepository {
     String description = '',
     required double price,
     required bool isPublished,
+    required String bookType,
     String? coverBase64,
   }) => _guard(() async {
         final res = await _dio.post('/books', data: {
@@ -260,6 +261,7 @@ class TeacherRepository {
           'description': description,
           'price': price,
           'isPublished': isPublished,
+          'bookType': bookType,
           if (coverBase64 != null) 'coverBase64': coverBase64,
         });
         return asMap(unwrapBody(res.data));
@@ -271,6 +273,7 @@ class TeacherRepository {
     String description = '',
     required double price,
     required bool isPublished,
+    required String bookType,
     String? coverBase64,
   }) => _guard(() async {
         final res = await _dio.put('/books/$bookId', data: {
@@ -279,6 +282,7 @@ class TeacherRepository {
           'description': description,
           'price': price,
           'isPublished': isPublished,
+          'bookType': bookType,
           if (coverBase64 != null) 'coverBase64': coverBase64,
         });
         return asMap(unwrapBody(res.data));
@@ -287,6 +291,12 @@ class TeacherRepository {
   Future<void> deleteBook(String bookId) => _guard(() async {
         await _dio.delete('/books/$bookId');
       }, 'فشل حذف الكتاب');
+
+  Future<void> uploadBookPdf(String bookId, String pdfPath) => _guard(() async {
+        final formData = FormData.fromMap({});
+        formData.files.add(MapEntry('pdfFile', await MultipartFile.fromFile(pdfPath)));
+        await _dio.post('/books/$bookId/upload-pdf', data: formData);
+      }, 'فشل رفع ملف PDF');
 
   Future<bool> toggleBookPublish(String bookId) => _guard(() async {
         final res = await _dio.patch('/books/$bookId/publish');

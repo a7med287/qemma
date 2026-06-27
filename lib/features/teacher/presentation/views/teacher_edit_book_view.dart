@@ -31,7 +31,9 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
   late double _price;
   late bool _isFree;
   late bool _isPublished;
+  late String _bookType;
   String? _coverBase64;
+  String? _pdfPath;
 
   // Cached decoded bytes to avoid repeated decode & crashes
 
@@ -50,6 +52,7 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
     _price = p > 0 ? p : 0;
     _isFree = p == 0;
     _isPublished = book['isPublished'] ?? false;
+    _bookType = book['bookType'] ?? 'physical';
     _coverBase64 = book['coverImage'];
 
     // Decode existing cover safely
@@ -102,11 +105,15 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
     if (err != null) { setState(() => _formError = err); return; }
     setState(() => _submitting = true);
     try {
-      await context.read<TeacherRepository>().updateBook(widget.book['id'],
+      final repo = context.read<TeacherRepository>();
+      await repo.updateBook(widget.book['id'],
         title: _titleCtrl.text, grade: _grade, description: _descCtrl.text,
         price: _isFree ? 0 : _price, isPublished: _isPublished,
-        coverBase64: _coverBase64,
+        bookType: _bookType, coverBase64: _coverBase64,
       );
+      if (_bookType == 'pdf' && _pdfPath != null) {
+        await repo.uploadBookPdf(widget.book['id'], _pdfPath!);
+      }
       if (!mounted) return;
       buildSnackBar(context, 'تم تحديث الكتاب بنجاح');
       Navigator.pop(context, true);
@@ -153,6 +160,17 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
     } catch (e) {
       _showToast('حدث خطأ أثناء اختيار الصورة', error: true);
     }
+  }
+
+  Future<void> _pickPdf() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    if (file.size > 50 * 1024 * 1024) {
+      _showToast('حجم الملف يجب أن يكون أقل من 50MB', error: true);
+      return;
+    }
+    setState(() => _pdfPath = file.path);
   }
 
   Widget _buildCoverPreview() {
@@ -342,6 +360,35 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
           ),
         SizedBox(height: 14.h),
 
+        // Book type
+        Text('نوع الكتاب', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569))),
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            Expanded(child: _toggleBtn('مطبوع', _bookType == 'physical', const Color(0xFF2563EB), isDark, icon: Icons.menu_book)),
+            SizedBox(width: 8.w),
+            Expanded(child: _toggleBtn('PDF', _bookType == 'pdf', const Color(0xFFB45309), isDark, icon: Icons.picture_as_pdf)),
+          ],
+        ),
+        if (_bookType == 'pdf') ...[
+          SizedBox(height: 10.h),
+          OutlinedButton.icon(
+            onPressed: _pickPdf,
+            icon: const Icon(Icons.cloud_upload, size: 18),
+            label: Text(_pdfPath != null ? 'تم اختيار ملف PDF' : 'رفع ملف PDF',
+                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 11.sp)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+              side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+            ),
+          ),
+          Text('الحد الأقصى للحجم: 50MB — PDF فقط',
+              style: TextStyle(fontFamily: 'Cairo', fontSize: 9.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3A8))),
+        ],
+        SizedBox(height: 14.h),
+
         Container(
           padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
@@ -460,12 +507,14 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
     );
   }
 
-  Widget _toggleBtn(String label, bool selected, Color color, bool isDark) {
+  Widget _toggleBtn(String label, bool selected, Color color, bool isDark, {IconData? icon}) {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _isFree = label == 'مجاني';
-          if (_isFree) _price = 0;
+          if (label == 'مجاني') { _isFree = true; _price = 0; }
+          else if (label == 'مدفوع') { _isFree = false; }
+          else if (label == 'مطبوع') { _bookType = 'physical'; _pdfPath = null; }
+          else if (label == 'PDF') { _bookType = 'pdf'; }
         });
       },
       child: Container(
@@ -483,7 +532,7 @@ class _TeacherEditBookViewState extends State<TeacherEditBookView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(label == 'مجاني' ? Icons.card_giftcard : Icons.attach_money, size: 16, color: selected ? color : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF))),
+            Icon(icon ?? (label == 'مجاني' ? Icons.card_giftcard : label == 'مدفوع' ? Icons.attach_money : Icons.menu_book), size: 16, color: selected ? color : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF))),
             SizedBox(width: 4.w),
             Text(label, style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12.sp, color: selected ? color : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)))),
           ],

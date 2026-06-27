@@ -28,6 +28,8 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
   bool _isFree = true;
   bool _isPublished = false;
   String? _coverBase64;
+  String _bookType = 'physical';
+  String? _pdfPath;
 
   final _grades = ['الصف الأول الثانوي', 'الصف الثاني الثانوي', 'الصف الثالث الثانوي'];
 
@@ -70,11 +72,18 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
     if (err != null) { setState(() => _formError = err); return; }
     setState(() => _submitting = true);
     try {
-      await context.read<TeacherRepository>().createBook(
+      final repo = context.read<TeacherRepository>();
+      final book = await repo.createBook(
         title: _titleCtrl.text, grade: _grade, description: _descCtrl.text,
         price: _isFree ? 0 : _price, isPublished: _isPublished,
-        coverBase64: _coverBase64,
+        bookType: _bookType, coverBase64: _coverBase64,
       );
+      if (_bookType == 'pdf' && _pdfPath != null) {
+        final bookId = book['id'] as String? ?? '';
+        if (bookId.isNotEmpty) {
+          await repo.uploadBookPdf(bookId, _pdfPath!);
+        }
+      }
       if (!mounted) return;
       buildSnackBar(context, 'تم إضافة الكتاب بنجاح');
       Navigator.pop(context, true);
@@ -101,6 +110,17 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
     }
     final ext = file.extension ?? 'png';
     setState(() => _coverBase64 = 'data:image/$ext;base64,${base64Encode(file.bytes!)}');
+  }
+
+  Future<void> _pickPdf() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    if (file.size > 50 * 1024 * 1024) {
+      _showToast('حجم الملف يجب أن يكون أقل من 50MB', error: true);
+      return;
+    }
+    setState(() => _pdfPath = file.path);
   }
 
   @override
@@ -183,7 +203,7 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
 
         // Grade
         DropdownButtonFormField<String>(
-          value: _grade.isNotEmpty ? _grade : null,
+          initialValue: _grade.isNotEmpty ? _grade : null,
           decoration: _inputDec('الصف الدراسي *', isDark),
           items: _grades.map((g) => DropdownMenuItem(value: g, child: Text(g, style: TextStyle(fontFamily: 'Cairo', fontSize: 12.sp)))).toList(),
           onChanged: (v) { if (v != null) setState(() => _grade = v); },
@@ -248,6 +268,35 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
               ],
             ),
           ),
+        SizedBox(height: 14.h),
+
+        // Book type
+        Text('نوع الكتاب', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12.sp, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569))),
+        SizedBox(height: 8.h),
+        Row(
+          children: [
+            Expanded(child: _toggleBtn('مطبوع', _bookType == 'physical', const Color(0xFF2563EB), isDark, icon: Icons.menu_book)),
+            SizedBox(width: 8.w),
+            Expanded(child: _toggleBtn('PDF', _bookType == 'pdf', const Color(0xFFB45309), isDark, icon: Icons.picture_as_pdf)),
+          ],
+        ),
+        if (_bookType == 'pdf') ...[
+          SizedBox(height: 10.h),
+          OutlinedButton.icon(
+            onPressed: _pickPdf,
+            icon: const Icon(Icons.cloud_upload, size: 18),
+            label: Text(_pdfPath != null ? 'تم اختيار ملف PDF' : 'رفع ملف PDF',
+                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 11.sp)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+              side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+            ),
+          ),
+          Text('الحد الأقصى للحجم: 50MB — PDF فقط',
+              style: TextStyle(fontFamily: 'Cairo', fontSize: 9.sp, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3A8))),
+        ],
         SizedBox(height: 14.h),
 
         // Publish toggle
@@ -387,12 +436,14 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
     );
   }
 
-  Widget _toggleBtn(String label, bool selected, Color color, bool isDark) {
+  Widget _toggleBtn(String label, bool selected, Color color, bool isDark, {IconData? icon}) {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _isFree = label == 'مجاني';
-          if (_isFree) _price = 0;
+          if (label == 'مجاني') { _isFree = true; _price = 0; }
+          else if (label == 'مدفوع') { _isFree = false; }
+          else if (label == 'مطبوع') { _bookType = 'physical'; _pdfPath = null; }
+          else if (label == 'PDF') { _bookType = 'pdf'; }
         });
       },
       child: Container(
@@ -410,7 +461,7 @@ class _TeacherCreateBookViewState extends State<TeacherCreateBookView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(label == 'مجاني' ? Icons.card_giftcard : Icons.attach_money, size: 16, color: selected ? color : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF))),
+            Icon(icon ?? (label == 'مجاني' ? Icons.card_giftcard : label == 'مدفوع' ? Icons.attach_money : Icons.menu_book), size: 16, color: selected ? color : (isDark ? const Color(0xFF64748B) : const Color(0xFF9CA3AF))),
             SizedBox(width: 4.w),
             Text(label, style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12.sp, color: selected ? color : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF6B7280)))),
           ],
