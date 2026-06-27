@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../../auth/presentation/views/login_view.dart';
+import '../../../../../core/services/socket_service.dart';
 import '../../../data/models/teacher_models.dart';
 import '../teacher_notifications_view.dart';
 import '../teacher_profile_view.dart';
@@ -73,62 +74,67 @@ class TeacherDashboardHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    Stack(
+                ValueListenableBuilder<int>(
+                  valueListenable: SocketService().unreadCountNotifier,
+                  builder: (context, count, _) {
+                    return Row(
                       children: [
-                        IconButton(
-                          onPressed: () => Navigator.pushNamed(context, TeacherNotificationsView.routeName),
-                          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                          style: IconButton.styleFrom(backgroundColor: Colors.white12),
-                        ),
-                        if (data.unreadCount > 0)
-                          Positioned(
-                            right: 0.w,
-                            top: 0.h,
-                            child: Container(
-                              padding: EdgeInsets.all(4.r),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFEF4444),
-                                shape: BoxShape.circle,
-                              ),
-                              constraints: BoxConstraints(minWidth: 18.w, minHeight: 18.h),
-                              child: Text(
-                                '${data.unreadCount}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                        Stack(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.pushNamed(context, TeacherNotificationsView.routeName),
+                              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                              style: IconButton.styleFrom(backgroundColor: Colors.white12),
                             ),
-                          ),
+                            if (count > 0)
+                              Positioned(
+                                right: 0.w,
+                                top: 0.h,
+                                child: Container(
+                                  padding: EdgeInsets.all(4.r),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEF4444),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: BoxConstraints(minWidth: 18.w, minHeight: 18.h),
+                                  child: Text(
+                                    '$count',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(width: 4.w),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, color: Colors.white),
+                          style: IconButton.styleFrom(backgroundColor: Colors.white12),
+                          onSelected: (value) {
+                            if (value == 'profile') {
+                              Navigator.pushNamed(context, TeacherProfileView.routeName);
+                            } else if (value == 'logout') {
+                              context.read<AuthCubit>().logout();
+                              Navigator.pushNamedAndRemoveUntil(context, LoginView.routeName, (_) => false);
+                            }
+                          },
+                          itemBuilder: (_) => [
+                            const PopupMenuItem(value: 'profile', child: Row(
+                              children: [Icon(Icons.person, size: 20), SizedBox(width: 8), Text('الملف الشخصي')],
+                            )),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(value: 'logout', child: Row(
+                              children: [Icon(Icons.exit_to_app, size: 20, color: Colors.red), SizedBox(width: 8), Text('تسجيل الخروج', style: TextStyle(color: Colors.red))],
+                            )),
+                          ],
+                        ),
                       ],
-                    ),
-                    SizedBox(width: 4.w),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      style: IconButton.styleFrom(backgroundColor: Colors.white12),
-                      onSelected: (value) {
-                        if (value == 'profile') {
-                          Navigator.pushNamed(context, TeacherProfileView.routeName);
-                        } else if (value == 'logout') {
-                          context.read<AuthCubit>().logout();
-                          Navigator.pushNamedAndRemoveUntil(context, LoginView.routeName, (_) => false);
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(value: 'profile', child: Row(
-                          children: [Icon(Icons.person, size: 20), SizedBox(width: 8), Text('الملف الشخصي')],
-                        )),
-                        const PopupMenuDivider(),
-                        const PopupMenuItem(value: 'logout', child: Row(
-                          children: [Icon(Icons.exit_to_app, size: 20, color: Colors.red), SizedBox(width: 8), Text('تسجيل الخروج', style: TextStyle(color: Colors.red))],
-                        )),
-                      ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ],
             ),

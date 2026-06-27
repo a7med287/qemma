@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/helpers/build_snack_bar.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
@@ -96,6 +98,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
   int _totalPages = 1;
   bool _loadingMore = false;
   late final TabController _tabController;
+  StreamSubscription<Map<String, dynamic>>? _socketSub;
 
   TeacherRepository get _repo => context.read<TeacherRepository>();
 
@@ -109,12 +112,25 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
       }
     });
     _load();
+    _socketSub = SocketService().notificationStream.listen(_onNewNotification);
   }
 
   @override
   void dispose() {
+    _socketSub?.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onNewNotification(Map<String, dynamic> data) {
+    if (!mounted) return;
+    final notif = NotificationModel.fromJson(data);
+    final exists = _notifications.any((n) => n.id == notif.id);
+    if (exists) return;
+    setState(() {
+      _notifications.insert(0, notif);
+      _unreadCount++;
+    });
   }
 
   Future<void> _load() async {
@@ -132,6 +148,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
         _totalPages = page.totalPages;
         _loading = false;
       });
+      SocketService().unreadCountNotifier.value = page.unreadCount;
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -173,6 +190,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
         )).toList();
         _unreadCount = 0;
       });
+      SocketService().unreadCountNotifier.value = 0;
     } catch (_) {
       if (mounted) _showSnackbar('فشل تعيين الإشعارات كمقروءة', Colors.red);
     }
@@ -191,6 +209,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
         ).toList();
         _unreadCount = _notifications.where((x) => !x.isRead).length;
       });
+      SocketService().unreadCountNotifier.value = _unreadCount;
     } catch (_) {}
   }
 
@@ -201,6 +220,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
         _notifications = _notifications.where((x) => x.id != n.id).toList();
         _unreadCount = _notifications.where((x) => !x.isRead).length;
       });
+      SocketService().unreadCountNotifier.value = _unreadCount;
     } catch (_) {
       if (mounted) _showSnackbar('فشل حذف الإشعار', Colors.red);
     }
@@ -213,6 +233,7 @@ class _TeacherNotificationsViewState extends State<TeacherNotificationsView>
         _notifications = [];
         _unreadCount = 0;
       });
+      SocketService().unreadCountNotifier.value = 0;
     } catch (_) {
       if (mounted) _showSnackbar('فشل حذف الإشعارات', Colors.red);
     }

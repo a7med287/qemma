@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../../../features/ai_assistant/presentation/views/ai_assistant_view.dart';
@@ -24,11 +26,21 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView> {
   TeacherDashboardData? _data;
   bool _loading = true;
   String? _error;
+  StreamSubscription<void>? _enrollSub;
 
   @override
   void initState() {
     super.initState();
     _loadDashboard();
+    _enrollSub = SocketService().enrollmentStream.listen((_) {
+      _loadDashboard();
+    });
+  }
+
+  @override
+  void dispose() {
+    _enrollSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadDashboard() async {
@@ -37,6 +49,7 @@ class _TeacherDashboardViewState extends State<TeacherDashboardView> {
       final data = await context.read<TeacherRepository>().getDashboard();
       if (!mounted) return;
       setState(() { _data = data; _loading = false; });
+      SocketService().unreadCountNotifier.value = data.unreadCount;
     } on Failure catch (e) {
       if (!mounted) return;
       setState(() { _error = e.message; _loading = false; });

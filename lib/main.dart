@@ -41,6 +41,7 @@ import 'core/cubits/theme_cubit/theme_cubit.dart';
 import 'core/cubits/theme_cubit/theme_state.dart';
 import 'core/network/api_client.dart';
 import 'core/services/shared_preferences_singleton.dart';
+import 'core/services/socket_service.dart';
 import 'core/utils/app_theme.dart';
 import 'core/widgets/main_view.dart';
 import 'features/auth/data/services/auth_service.dart';
@@ -120,7 +121,13 @@ class _QemaAppView extends StatelessWidget {
                 child = DevicePreview.appBuilder(context, child);
                 return BlocListener<AuthCubit, AuthState>(
                   listener: (context, authState) {
-                    if (authState is AuthUnauthenticated) {
+                    if (authState is AuthAuthenticated) {
+                      final token = Prefs.getString(kAuthTokenKey);
+                      if (token != null && token.isNotEmpty) {
+                        SocketService().connect(token, authState.user.id);
+                      }
+                    } else if (authState is AuthUnauthenticated) {
+                      SocketService().disconnect();
                       Navigator.of(context).pushNamedAndRemoveUntil(
                         LoginView.routeName,
                         (route) => false,

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/helpers/build_snack_bar.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../../../core/utils/app_text_styles.dart';
 import '../../data/repositories/teacher_repository.dart';
 
@@ -26,24 +27,36 @@ class _TeacherChatConversationViewState
   List<Map<String, dynamic>> _messages = [];
   Map<String, dynamic>? _student;
   String? _courseId;
-  Timer? _pollTimer;
+  StreamSubscription<Map<String, dynamic>>? _chatSub;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _initChat());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initChat());
+    _chatSub = SocketService().chatMessageStream.listen(_onNewMessage);
   }
 
   @override
   void dispose() {
+    if (_sessionId != null) {
+      SocketService().leaveChatSession(_sessionId!);
+    }
+    _chatSub?.cancel();
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
-    _pollTimer?.cancel();
     super.dispose();
   }
 
   TeacherRepository get _repo => context.read<TeacherRepository>();
+
+  void _onNewMessage(Map<String, dynamic> data) {
+    if (!mounted || _sessionId == null) return;
+    final msgId = data['_id']?.toString() ?? data['id']?.toString() ?? '';
+    if (msgId.isEmpty) return;
+    if (_messages.any((m) => m['_id']?.toString() == msgId || m['id']?.toString() == msgId)) return;
+    setState(() => _messages.add(data));
+    _scrollToBottom();
+  }
 
   void _initChat() {
     final args =
@@ -94,7 +107,7 @@ class _TeacherChatConversationViewState
           _loading = false;
         });
         _scrollToBottom();
-        _startPolling();
+        SocketService().joinChatSession(_sessionId!);
       }
     } catch (_) {
       if (mounted) {
@@ -102,26 +115,6 @@ class _TeacherChatConversationViewState
         _showError('فشل تحميل الرسائل');
       }
     }
-  }
-
-  void _startPolling() {
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_sessionId != null) {
-        _refreshOnDemand();
-      }
-    });
-  }
-
-  Future<void> _refreshOnDemand() async {
-    if (_sessionId == null) return;
-    try {
-      final msgs = await _repo.getChatMessages(_sessionId!);
-      if (mounted && msgs.length > _messages.length) {
-        setState(() => _messages = msgs);
-        _scrollToBottom();
-      }
-    } catch (_) {}
   }
 
   Future<void> _sendMessage() async {
