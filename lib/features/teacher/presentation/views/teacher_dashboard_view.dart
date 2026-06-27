@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../features/ai_assistant/presentation/views/ai_assistant_view.dart';
 import '../../data/models/teacher_models.dart';
 import '../../data/repositories/teacher_repository.dart';
 import 'widgets/teacher_dashboard_header.dart';
@@ -88,6 +89,27 @@ class _DashboardBody extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: () => Navigator.pushNamed(context, AiAssistantView.routeName),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          width: 64.w,
+          height: 64.w,
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gradientMid.withValues(alpha: .4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.smart_toy, color: Colors.white, size: 28),
+        ),
+      ),
       body: Column(
         children: [
           TeacherDashboardHeader(data: data),
@@ -187,7 +209,7 @@ class _DashboardBody extends StatelessWidget {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8.r),
-                        onTap: () {},
+                        onTap: () => Navigator.pushNamed(context, '/teacher/contests'),
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                           child: Row(

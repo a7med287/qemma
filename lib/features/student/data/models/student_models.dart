@@ -434,23 +434,34 @@ class ContestItem {
     required this.id,
     required this.title,
     required this.difficulty,
-    required this.date,
+    required this.startTime,
+    required this.endTime,
     required this.duration,
     required this.questionCount,
     required this.participants,
     required this.status,
+    this.stream = '',
     this.aiGenerated = false,
+    this.hasSubmitted = false,
+    this.eligible = true,
   });
 
   final String id;
   final String title;
   final String difficulty;
-  final String date;
+  final String startTime;
+  final String endTime;
   final int duration;
   final int questionCount;
   final int participants;
   final String status;
+  final String stream;
   final bool aiGenerated;
+  final bool hasSubmitted;
+  final bool eligible;
+
+  bool get isUpcoming => status == 'upcoming';
+  bool get isPast => !isUpcoming;
 }
 
 class ContestHistoryItem {
@@ -481,6 +492,89 @@ class ContestHistoryItem {
   final int solvedProblems;
   final int totalProblems;
   final String duration;
+}
+
+class ContestOption {
+  final String id;
+  final String text;
+  const ContestOption({required this.id, required this.text});
+}
+
+class ContestQuestion {
+  final String id;
+  final String text;
+  final int pointValue;
+  final String questionType;
+  final List<ContestOption> options;
+  const ContestQuestion({
+    required this.id,
+    required this.text,
+    required this.pointValue,
+    required this.questionType,
+    required this.options,
+  });
+}
+
+class ContestParticipation {
+  final String participationId;
+  final String contestId;
+  final String contestTitle;
+  final String stream;
+  final String difficulty;
+  final String startTime;
+  final String endTime;
+  final bool isTest;
+  final List<ContestQuestion> questions;
+  final List<String> answeredQuestionIds;
+  const ContestParticipation({
+    required this.participationId,
+    required this.contestId,
+    required this.contestTitle,
+    required this.stream,
+    required this.difficulty,
+    required this.startTime,
+    required this.endTime,
+    required this.isTest,
+    required this.questions,
+    required this.answeredQuestionIds,
+  });
+}
+
+class ContestDashboardData {
+  final int currentRating;
+  final List<ContestRatingPoint> ratingHistory;
+  final ContestStats stats;
+  final List<ContestHistoryItem> contests;
+  const ContestDashboardData({
+    required this.currentRating,
+    required this.ratingHistory,
+    required this.stats,
+    required this.contests,
+  });
+}
+
+class ContestStats {
+  final int totalContests;
+  final int totalSolved;
+  final int avgRank;
+  final int bestRank;
+  const ContestStats({
+    required this.totalContests,
+    required this.totalSolved,
+    required this.avgRank,
+    required this.bestRank,
+  });
+}
+
+class ContestRatingPoint {
+  final String date;
+  final int rating;
+  final String contestName;
+  const ContestRatingPoint({
+    required this.date,
+    required this.rating,
+    required this.contestName,
+  });
 }
 
 class AssignmentItem {

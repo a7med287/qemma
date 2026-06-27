@@ -16,6 +16,7 @@ import '../views/student_contest_dashboard_view.dart';
 import '../views/student_dashboard_view.dart';
 import '../views/student_profile_view.dart';
 import '../views/submit_assignment_view.dart';
+import '../views/take_contest_view.dart';
 import '../views/take_exam_view.dart';
 import '../views/tasks_view.dart';
 
@@ -65,6 +66,13 @@ abstract final class StudentRoutes {
           return _page(BookOfficeHourView(courseId: courseId));
         }
         return _page(CourseDashboardView(courseId: courseId));
+      }
+    }
+
+    if (name.startsWith('/student/contests/') && name != contestDashboard) {
+      final segments = name.split('/');
+      if (segments.length >= 4) {
+        return _page(TakeContestView(contestId: segments[3]));
       }
     }
 

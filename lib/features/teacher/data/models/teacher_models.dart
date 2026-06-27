@@ -196,6 +196,113 @@ class NotificationModel {
   }
 }
 
+class TeacherContestItem {
+  final String id;
+  final String title;
+  final String? description;
+  final int duration;
+  final int questionCount;
+  final String difficulty;
+  final String stream;
+  final String status;
+  final String startTime;
+  final bool isTest;
+  final bool canManage;
+  final int participationCount;
+
+  const TeacherContestItem({
+    required this.id,
+    required this.title,
+    this.description,
+    required this.duration,
+    required this.questionCount,
+    required this.difficulty,
+    this.stream = '',
+    this.status = 'upcoming',
+    this.startTime = '',
+    this.isTest = false,
+    this.canManage = true,
+    this.participationCount = 0,
+  });
+
+  factory TeacherContestItem.fromJson(Map<String, dynamic> json) {
+    final counts = json['_count'] as Map<String, dynamic>?;
+    return TeacherContestItem(
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString(),
+      duration: _toInt(json['duration']),
+      questionCount: _toInt(json['questionCount'] ?? counts?['questions']),
+      difficulty: json['difficulty']?.toString() ?? 'Medium',
+      stream: json['stream']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'upcoming',
+      startTime: json['startTime']?.toString() ?? '',
+      isTest: json['isTest'] == true,
+      canManage: json['canManage'] != false,
+      participationCount: _toInt(json['participationCount'] ?? counts?['participations']),
+    );
+  }
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    return int.tryParse(v.toString()) ?? 0;
+  }
+}
+
+class ContestOption {
+  final String id;
+  final String text;
+  final bool isCorrect;
+
+  const ContestOption({required this.id, required this.text, required this.isCorrect});
+
+  factory ContestOption.fromJson(Map<String, dynamic> json) => ContestOption(
+    id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+    text: json['text']?.toString() ?? '',
+    isCorrect: json['isCorrect'] == true,
+  );
+}
+
+class ContestQuestion {
+  final String id;
+  final String text;
+  final String questionType;
+  final int pointValue;
+  final List<ContestOption> options;
+  final bool aiGenerated;
+  final String? authorName;
+  final bool canDelete;
+
+  const ContestQuestion({
+    required this.id,
+    required this.text,
+    this.questionType = 'mcq',
+    this.pointValue = 1,
+    this.options = const [],
+    this.aiGenerated = false,
+    this.authorName,
+    this.canDelete = false,
+  });
+
+  factory ContestQuestion.fromJson(Map<String, dynamic> json) {
+    final opts = (json['options'] as List?)
+            ?.map((e) => ContestOption.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    return ContestQuestion(
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      text: json['text']?.toString() ?? '',
+      questionType: json['questionType']?.toString() ?? 'mcq',
+      pointValue: TeacherContestItem._toInt(json['pointValue']),
+      options: opts,
+      aiGenerated: json['aiGenerated'] == true,
+      authorName: json['authorName']?.toString(),
+      canDelete: json['canDelete'] == true,
+    );
+  }
+}
+
 class NotificationsPageData {
   const NotificationsPageData({
     required this.notifications,

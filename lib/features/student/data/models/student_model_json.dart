@@ -197,7 +197,6 @@ abstract final class StudentModelJson {
     final course = asMap(json['course']);
     final enrollment = asMap(json['enrollment']);
     final teacher = asMap(course['teacher']);
-    final stats = asMap(course['stats']);
 
     return CourseDetail(
       id: course['id']?.toString() ?? '',
@@ -484,6 +483,97 @@ abstract final class StudentModelJson {
       return Color(int.parse('FF$cleaned', radix: 16));
     }
     return const Color(0xFF2563EB);
+  }
+
+  static ContestItem contestItemFromJson(Map<String, dynamic> json) {
+    return ContestItem(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      difficulty: json['difficulty']?.toString() ?? 'medium',
+      startTime: json['startTime']?.toString() ?? '',
+      endTime: json['endTime']?.toString() ?? '',
+      duration: json['duration'] is int ? json['duration'] as int : int.tryParse(json['duration']?.toString() ?? '0') ?? 0,
+      questionCount: json['questionCount'] is int ? json['questionCount'] as int : int.tryParse(json['questionCount']?.toString() ?? '0') ?? 0,
+      participants: json['participationCount'] is int ? json['participationCount'] as int : int.tryParse(json['participationCount']?.toString() ?? '0') ?? 0,
+      status: json['status']?.toString() ?? 'upcoming',
+      stream: json['stream']?.toString() ?? '',
+      aiGenerated: json['aiGenerated'] == true || json['isTest'] == true,
+      hasSubmitted: json['hasSubmitted'] == true,
+      eligible: json['eligible'] != false,
+    );
+  }
+
+  static ContestHistoryItem contestHistoryFromJson(Map<String, dynamic> json) {
+    return ContestHistoryItem(
+      id: json['id']?.toString() ?? '',
+      contestName: json['contestName']?.toString() ?? json['contest']?['title']?.toString() ?? '',
+      date: json['date']?.toString() ?? '',
+      difficulty: json['difficulty']?.toString() ?? 'medium',
+      rank: json['rank'] is int ? json['rank'] as int : int.tryParse(json['rank']?.toString() ?? '0') ?? 0,
+      totalParticipants: json['totalParticipants'] is int ? json['totalParticipants'] as int : int.tryParse(json['totalParticipants']?.toString() ?? '0') ?? 0,
+      score: json['score'] is int ? json['score'] as int : int.tryParse(json['score']?.toString() ?? '0') ?? 0,
+      ratingChange: json['ratingChange'] is int ? json['ratingChange'] as int : int.tryParse(json['ratingChange']?.toString() ?? '0') ?? 0,
+      newRating: json['newRating'] is int ? json['newRating'] as int : int.tryParse(json['newRating']?.toString() ?? '0') ?? 0,
+      solvedProblems: json['solvedProblems'] is int ? json['solvedProblems'] as int : int.tryParse(json['solvedProblems']?.toString() ?? '0') ?? 0,
+      totalProblems: json['totalProblems'] is int ? json['totalProblems'] as int : int.tryParse(json['totalProblems']?.toString() ?? '0') ?? 0,
+      duration: json['duration']?.toString() ?? '',
+    );
+  }
+
+  static ContestOption contestOptionFromJson(Map<String, dynamic> json) {
+    return ContestOption(
+      id: json['id']?.toString() ?? '',
+      text: json['text']?.toString() ?? '',
+    );
+  }
+
+  static ContestQuestion contestQuestionFromJson(Map<String, dynamic> json) {
+    return ContestQuestion(
+      id: json['id']?.toString() ?? '',
+      text: json['text']?.toString() ?? json['questionText']?.toString() ?? '',
+      pointValue: json['pointValue'] is int ? json['pointValue'] as int : int.tryParse(json['pointValue']?.toString() ?? '0') ?? 0,
+      questionType: json['questionType']?.toString() ?? 'mcq',
+      options: asMapList(json['options']).map(contestOptionFromJson).toList(),
+    );
+  }
+
+  static ContestParticipation contestParticipationFromJson(Map<String, dynamic> json) {
+    final contest = asMap(json['contest']);
+    return ContestParticipation(
+      participationId: json['participationId']?.toString() ?? '',
+      contestId: contest['id']?.toString() ?? '',
+      contestTitle: contest['title']?.toString() ?? '',
+      stream: contest['stream']?.toString() ?? '',
+      difficulty: contest['difficulty']?.toString() ?? 'medium',
+      startTime: contest['startTime']?.toString() ?? '',
+      endTime: contest['endTime']?.toString() ?? '',
+      isTest: contest['isTest'] == true,
+      questions: asMapList(json['questions']).map(contestQuestionFromJson).toList(),
+      answeredQuestionIds: (json['answeredQuestionIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
+    );
+  }
+
+  static ContestDashboardData contestDashboardFromJson(Map<String, dynamic> json) {
+    final statsMap = asMap(json['stats']);
+    return ContestDashboardData(
+      currentRating: json['currentRating'] is int ? json['currentRating'] as int : int.tryParse(json['currentRating']?.toString() ?? '0') ?? 0,
+      ratingHistory: asMapList(json['ratingHistory']).map(contestRatingPointFromJson).toList(),
+      stats: ContestStats(
+        totalContests: statsMap['totalContests'] is int ? statsMap['totalContests'] as int : int.tryParse(statsMap['totalContests']?.toString() ?? '0') ?? 0,
+        totalSolved: statsMap['totalSolved'] is int ? statsMap['totalSolved'] as int : int.tryParse(statsMap['totalSolved']?.toString() ?? '0') ?? 0,
+        avgRank: statsMap['avgRank'] is int ? statsMap['avgRank'] as int : int.tryParse(statsMap['avgRank']?.toString() ?? '0') ?? 0,
+        bestRank: statsMap['bestRank'] is int ? statsMap['bestRank'] as int : int.tryParse(statsMap['bestRank']?.toString() ?? '0') ?? 0,
+      ),
+      contests: asMapList(json['contests']).map(contestHistoryFromJson).toList(),
+    );
+  }
+
+  static ContestRatingPoint contestRatingPointFromJson(Map<String, dynamic> json) {
+    return ContestRatingPoint(
+      date: json['date']?.toString() ?? '',
+      rating: json['rating'] is int ? json['rating'] as int : int.tryParse(json['rating']?.toString() ?? '0') ?? 0,
+      contestName: json['contestName']?.toString() ?? '',
+    );
   }
 }
 

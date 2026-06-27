@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_colors.dart';
+import '../../../../features/ai_assistant/presentation/views/ai_assistant_view.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
 import '../routes/student_routes.dart';
@@ -11,7 +12,6 @@ import '../widgets/student_async_body.dart';
 import 'widgets/student_dashboard_header.dart';
 import 'widgets/student_dashboard_sections.dart';
 import 'widgets/student_dashboard_drawer.dart';
-import 'widgets/student_dashboard_assistant.dart';
 
 class StudentDashboardView extends StatefulWidget {
   static const routeName = StudentRoutes.dashboard;
@@ -26,7 +26,6 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
   StudentDashboardData? _data;
   bool _loading = true;
   String? _error;
-  bool _assistantOpen = false;
 
   @override
   void initState() {
@@ -110,10 +109,10 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
       backgroundColor: context.isDark ? AppColors.darkBackground : const Color(0xFFF8FAFC),
       drawer: StudentDashboardDrawer(
         data: data,
-        onAssistantTap: () => setState(() => _assistantOpen = true),
+        onAssistantTap: () => Navigator.pushNamed(context, AiAssistantView.routeName),
       ),
       floatingActionButton: FloatingActionButton.large(
-        onPressed: () => setState(() => _assistantOpen = !_assistantOpen),
+        onPressed: () => Navigator.pushNamed(context, AiAssistantView.routeName),
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: Container(
@@ -138,36 +137,27 @@ class _StudentDashboardViewState extends State<StudentDashboardView> {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: StudentDashboardHeader(
-                  data: data,
-                  onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
-                  onNotificationTap: () =>
-                      Navigator.pushNamed(context, StudentRoutes.notifications),
-                ),
-              ),
-              SliverPadding(
-                padding: EdgeInsets.all(16.r),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    StudentDashboardSections(
-                      data: data,
-                      onToggleTask: _toggleTask,
-                    ),
-                  ]),
-                ),
-              ),
-            ],
-          ),
-          if (_assistantOpen)
-            StudentDashboardAssistant(
-              firstName: data.student.firstName,
-              onClose: () => setState(() => _assistantOpen = false),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: StudentDashboardHeader(
+              data: data,
+              onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+              onNotificationTap: () =>
+                  Navigator.pushNamed(context, StudentRoutes.notifications),
             ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.all(16.r),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                StudentDashboardSections(
+                  data: data,
+                  onToggleTask: _toggleTask,
+                ),
+              ]),
+            ),
+          ),
         ],
       ),
     );

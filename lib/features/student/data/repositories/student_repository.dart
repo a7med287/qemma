@@ -161,4 +161,47 @@ class StudentRepository {
         final data = unwrapBody(res.data);
         return asMapList(data).map(StudentModelJson.courseLessonFromJson).toList();
       }, 'فشل تحميل الدروس');
+
+  // ── Contests ──────────────────────────────────────────────────────
+
+  Future<List<ContestItem>> getAvailableContests() => _guard(() async {
+        final res = await _dio.get('/contests/available');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(StudentModelJson.contestItemFromJson).toList();
+      }, 'فشل تحميل المسابقات');
+
+  Future<ContestDashboardData> getContestDashboard() => _guard(() async {
+        final res = await _dio.get('/contests/dashboard');
+        return StudentModelJson.contestDashboardFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل تحميل لوحة المسابقات');
+
+  Future<List<ContestHistoryItem>> getContestHistory() => _guard(() async {
+        final res = await _dio.get('/contests/my-history');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(StudentModelJson.contestHistoryFromJson).toList();
+      }, 'فشل تحميل تاريخ المسابقات');
+
+  Future<ContestParticipation> startContest(String contestId) => _guard(() async {
+        final res = await _dio.post('/contests/$contestId/start');
+        return StudentModelJson.contestParticipationFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل بدء المسابقة');
+
+  Future<ContestParticipation> getParticipation(String contestId) => _guard(() async {
+        final res = await _dio.get('/contests/$contestId/participation');
+        return StudentModelJson.contestParticipationFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل تحميل المشاركة');
+
+  Future<void> submitAnswer({
+    required String contestId,
+    required String questionId,
+    required String selectedOptionId,
+  }) => _guard(() async {
+        await _dio.post('/contests/$contestId/questions/$questionId/submit', data: {
+          'selectedOptionId': selectedOptionId,
+        });
+      }, 'فشل إرسال الإجابة');
+
+  Future<void> submitContest(String contestId) => _guard(() async {
+        await _dio.post('/contests/$contestId/submit');
+      }, 'فشل تقديم المسابقة');
 }

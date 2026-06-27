@@ -25,6 +25,7 @@ import 'package:qemma/features/teacher/presentation/views/teacher_live_class_vie
 import 'package:qemma/features/teacher/presentation/views/teacher_notifications_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_profile_view.dart';
 import 'package:qemma/features/teacher/presentation/views/teacher_upload_lesson_view.dart';
+import 'package:qemma/features/teacher/presentation/views/teacher_contests_view.dart';
 import 'package:qemma/features/teacher/data/models/teacher_models.dart';
 import 'package:qemma/features/parent/data/repositories/parent_repository.dart';
 import 'package:qemma/features/parent/presentation/routes/parent_routes.dart';
@@ -44,6 +45,7 @@ import 'core/utils/app_theme.dart';
 import 'core/widgets/main_view.dart';
 import 'features/auth/data/services/auth_service.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
+import 'features/ai_assistant/presentation/views/ai_assistant_view.dart';
 import 'features/auth/presentation/views/login_view.dart';
 import 'features/auth/presentation/views/register_view.dart';
 import 'features/on_boarding/presentation/views/on_boarding_view.dart';
@@ -138,6 +140,7 @@ class _QemaAppView extends StatelessWidget {
                 OnBoardingView.routeName: (_) => const OnBoardingView(),
                 LoginView.routeName: (_) => const LoginView(),
                 RegisterView.routeName: (_) => const RegisterView(),
+                AiAssistantView.routeName: (_) => const AiAssistantView(),
                 MainView.routeName: (_) => const MainView(),
                 ...StudentRoutes.routes,
                 TeacherDashboardView.routeName: (_) => const TeacherDashboardView(),
@@ -157,6 +160,7 @@ class _QemaAppView extends StatelessWidget {
                 TeacherNotificationsView.routeName: (_) => const TeacherNotificationsView(),
                 TeacherProfileView.routeName: (_) => const TeacherProfileView(),
                 TeacherCreateBookView.routeName: (_) => const TeacherCreateBookView(),
+                TeacherContestsView.routeName: (_) => const TeacherContestsView(),
                 AssistantDashboardView.routeName: (_) => const AssistantDashboardView(),
                 AssistantChatView.routeName: (_) => const AssistantChatView(),
                 AssistantGradeExamsView.routeName: (_) => const AssistantGradeExamsView(),

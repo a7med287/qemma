@@ -447,41 +447,36 @@ class TeacherRepository {
 
   // ── Contests ───────────────────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getTeacherContests() => _guard(() async {
+  Future<List<TeacherContestItem>> getTeacherContests() => _guard(() async {
         final res = await _dio.get('/contests/teacher');
         final data = unwrapBody(res.data);
-        return asMapList(data);
+        return asMapList(data).map((e) => TeacherContestItem.fromJson(e)).toList();
       }, 'فشل تحميل المسابقات');
 
-  Future<Map<String, dynamic>> createContest({
-    required String title,
-    required String courseId,
-    required int duration,
-    required int questionCount,
-    required String difficulty,
-    String? description,
-    bool isPublished = false,
-  }) => _guard(() async {
-        final res = await _dio.post('/contests', data: {
-          'title': title.trim(),
-          'courseId': courseId,
-          'duration': duration,
-          'questionCount': questionCount,
-          'difficulty': difficulty,
-          if (description != null) 'description': description.trim(),
-          'isPublished': isPublished,
-        });
-        return asMap(unwrapBody(res.data));
-      }, 'فشل إنشاء المسابقة');
+  Future<List<TeacherContestItem>> getTeacherPastContests() => _guard(() async {
+        final res = await _dio.get('/contests/teacher/history');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map((e) => TeacherContestItem.fromJson(e)).toList();
+      }, 'فشل تحميل المسابقات السابقة');
 
-  Future<void> deleteContest(String contestId) => _guard(() async {
-        await _dio.delete('/contests/$contestId');
-      }, 'فشل حذف المسابقة');
-
-  Future<Map<String, dynamic>> toggleContestPublish(String contestId) => _guard(() async {
-        final res = await _dio.patch('/contests/$contestId/publish');
+  Future<Map<String, dynamic>> getContestDetail(String contestId) => _guard(() async {
+        final res = await _dio.get('/contests/$contestId');
         return asMap(unwrapBody(res.data));
-      }, 'فشل تغيير حالة المسابقة');
+      }, 'فشل تحميل تفاصيل المسابقة');
+
+  Future<List<ContestQuestion>> getContestQuestions(String contestId) => _guard(() async {
+        final res = await _dio.get('/contests/$contestId/questions');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map((e) => ContestQuestion.fromJson(e)).toList();
+      }, 'فشل تحميل الأسئلة');
+
+  Future<void> addContestQuestion(String contestId, Map<String, dynamic> data) => _guard(() async {
+        await _dio.post('/contests/$contestId/questions', data: data);
+      }, 'فشل إضافة السؤال');
+
+  Future<void> deleteContestQuestion(String contestId, String questionId) => _guard(() async {
+        await _dio.delete('/contests/$contestId/questions/$questionId');
+      }, 'فشل حذف السؤال');
 
   // ── Live Classes ───────────────────────────────────────────────
 

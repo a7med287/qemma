@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
+import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../features/ai_assistant/presentation/views/ai_assistant_view.dart';
 import '../../data/models/assistant_models.dart';
 import '../../data/repositories/assistant_repository.dart';
 import 'assistant_chat_view.dart';
@@ -134,6 +136,27 @@ class _AssistantDashboardContentState extends State<_AssistantDashboardContent> 
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF9FAFB),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: () => Navigator.pushNamed(context, AiAssistantView.routeName),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          width: 64.w,
+          height: 64.w,
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gradientMid.withValues(alpha: .4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.smart_toy, color: Colors.white, size: 28),
+        ),
+      ),
       body: Column(
         children: [
           AssistantDashboardHeader(

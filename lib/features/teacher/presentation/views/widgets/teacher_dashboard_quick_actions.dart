@@ -12,6 +12,7 @@ import '../teacher_grade_exams_view.dart';
 import '../teacher_assignments_view.dart';
 import '../teacher_chat_management_view.dart';
 import '../teacher_upload_lesson_view.dart';
+import '../teacher_contests_view.dart';
 
 class TeacherDashboardQuickActions extends StatelessWidget {
   const TeacherDashboardQuickActions({super.key});
@@ -21,7 +22,7 @@ class TeacherDashboardQuickActions extends StatelessWidget {
     final isDark = context.isDark;
 
     final actions = [
-      _QuickAction(title: 'إدارة المسابقات الذهبية', desc: 'أضف أسئلة للمسابقات الذهبية - الصف الثالث', icon: Icons.emoji_events, color: const Color(0xFFF59E0B)),
+      _QuickAction(title: 'إدارة المسابقات الذهبية', desc: 'أضف أسئلة للمسابقات الذهبية - الصف الثالث', icon: Icons.emoji_events, color: const Color(0xFFF59E0B), onTap: () => Navigator.pushNamed(context, TeacherContestsView.routeName)),
       _QuickAction(title: 'مكتبة الكتب', desc: 'إدارة ورفع الكتب الدراسية', icon: Icons.menu_book, color: const Color(0xFF8B5CF6), onTap: () => Navigator.pushNamed(context, TeacherBooksView.routeName)),
       _QuickAction(title: 'إرسال إشعار', desc: 'أرسل إشعارات للطلاب', icon: Icons.campaign, color: const Color(0xFFEF4444), onTap: () => Navigator.pushNamed(context, TeacherSendNotificationView.routeName)),
       _QuickAction(title: 'إنشاء كورس جديد', desc: 'أضف كورس جديد لطلابك', icon: Icons.add, color: const Color(0xFF2563EB), onTap: () => Navigator.pushNamed(context, TeacherCreateCourseView.routeName)),
