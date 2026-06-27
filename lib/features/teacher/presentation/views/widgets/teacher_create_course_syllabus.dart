@@ -41,75 +41,70 @@ class TeacherCreateCourseSyllabus extends StatelessWidget {
       children: [
         _buildCard(context, isDark, [
           _sectionTitle('تفاصيل الكورس', isDark),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('السعر (جنيه)', required: true, isDark: isDark),
-                    _buildInput(
-                      controller: priceCtrl,
-                      fieldKey: 'price',
-                      placeholder: 'مثال: 500',
-                      keyboardType: TextInputType.number,
-                      error: priceError,
-                      onChanged: (v) => onFieldChanged('price'),
-                      isDark: isDark,
+          _buildLabel('السعر (جنيه)', required: true, isDark: isDark),
+          _buildInput(
+            controller: priceCtrl,
+            fieldKey: 'price',
+            placeholder: 'مثال: 500',
+            keyboardType: TextInputType.number,
+            error: priceError,
+            onChanged: (v) => onFieldChanged('price'),
+            isDark: isDark,
+          ),
+          // 20% platform fee alert
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: priceCtrl,
+            builder: (_, val, __) {
+              final p = double.tryParse(val.text);
+              if (p == null || p <= 0) return const SizedBox.shrink();
+              final net = (p * 0.8).toStringAsFixed(2);
+              return Padding(
+                padding: EdgeInsets.only(top: 8.h),
+                child: Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2563EB).withValues(alpha: .1) : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: const Color(0xFF2563EB)),
+                  ),
+                  child: Text.rich(
+                    TextSpan(
+                      style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp, color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF)),
+                      children: [
+                        TextSpan(text: 'تنبيه: ', style: TextStyle(fontWeight: FontWeight.w900)),
+                        TextSpan(text: 'المنصة تأخذ 20% من كل اشتراك. ستحصل على '),
+                        TextSpan(text: '$net جنيه', style: TextStyle(fontWeight: FontWeight.w900)),
+                        TextSpan(text: ' لكل طالب.'),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('المدة (بالأسابيع)', required: true, isDark: isDark),
-                    _buildInput(
-                      controller: durationCtrl,
-                      fieldKey: 'duration',
-                      placeholder: 'مثال: 8',
-                      keyboardType: TextInputType.number,
-                      error: durationError,
-                      onChanged: (v) => onFieldChanged('duration'),
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              );
+            },
           ),
           SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('الحد الأقصى للطلاب (اختياري)', isDark: isDark),
-                    _buildInput(
-                      controller: maxStudentsCtrl,
-                      fieldKey: 'maxStudents',
-                      placeholder: 'مثال: 30',
-                      keyboardType: TextInputType.number,
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('تاريخ البداية', required: true, isDark: isDark),
-                    _buildDateField(startDate, startDateError, onStartDatePicked, isDark),
-                  ],
-                ),
-              ),
-            ],
+          _buildLabel('المدة (بالأسابيع)', required: true, isDark: isDark),
+          _buildInput(
+            controller: durationCtrl,
+            fieldKey: 'duration',
+            placeholder: 'مثال: 8',
+            keyboardType: TextInputType.number,
+            error: durationError,
+            onChanged: (v) => onFieldChanged('duration'),
+            isDark: isDark,
           ),
+          SizedBox(height: 16.h),
+          _buildLabel('الحد الأقصى للطلاب (اختياري)', isDark: isDark),
+          _buildInput(
+            controller: maxStudentsCtrl,
+            fieldKey: 'maxStudents',
+            placeholder: 'مثال: 30',
+            keyboardType: TextInputType.number,
+            isDark: isDark,
+          ),
+          SizedBox(height: 16.h),
+          _buildLabel('تاريخ البداية', required: true, isDark: isDark),
+          _buildDateField(startDate, startDateError, onStartDatePicked, isDark),
           SizedBox(height: 16.h),
           _buildLabel('تاريخ النهاية (اختياري)', isDark: isDark),
           _buildDateField(endDate, null, onEndDatePicked, isDark),

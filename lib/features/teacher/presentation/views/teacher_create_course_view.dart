@@ -46,7 +46,8 @@ class _TeacherCreateCourseViewState extends State<TeacherCreateCourseView> {
 
   String get _teacherSubject {
     final user = context.read<AuthCubit>().currentUser;
-    return user?.subject ?? '';
+    if (user == null) return '';
+    return user.specialties.isNotEmpty ? user.specialties.first : (user.subject ?? '');
   }
 
   @override
