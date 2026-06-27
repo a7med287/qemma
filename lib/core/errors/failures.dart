@@ -8,7 +8,9 @@ abstract class Failure {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure(super.message);
+  const ServerFailure(super.message, {this.statusCode});
+
+  final int? statusCode;
 }
 
 class CacheFailure extends Failure {

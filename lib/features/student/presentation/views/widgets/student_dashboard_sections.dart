@@ -1,11 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/helpers/build_context_extensions.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_text_styles.dart';
 import '../../../data/mock/student_mock_data.dart';
 import '../../../data/models/student_models.dart';
+import '../../../data/repositories/student_repository.dart';
 import '../../routes/student_routes.dart';
 import '../../widgets/student_shared_widgets.dart';
 
@@ -23,7 +25,7 @@ class StudentDashboardSections extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildContestCard(context),
+        const _ContestCard(),
         if (data.alerts.isNotEmpty) ...[
           SizedBox(height: 16.h),
           _buildAlerts(context),
@@ -44,88 +46,6 @@ class StudentDashboardSections extends StatelessWidget {
         _buildRecentExams(context),
         SizedBox(height: 80.h),
       ],
-    );
-  }
-
-  Widget _buildContestCard(BuildContext context) {
-    return StudentGlassCard(
-      title: '🏆 المسابقات الذهبية',
-      icon: '🥇',
-      actionLabel: 'لوحة المسابقات',
-      onAction: () => Navigator.pushNamed(context, StudentRoutes.contestDashboard),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, StudentRoutes.contestDashboard),
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
-          padding: EdgeInsets.all(16.r),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-            ),
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.emoji_events, color: Colors.white, size: 32.sp),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('تابع تقدمك في المسابقات الذهبية',
-                            style: TextStyles.bold18.copyWith(color: Colors.white)),
-                        Text('الصف الثالث الثانوي • جميع الشعب',
-                            style: TextStyles.regular13.copyWith(color: Colors.white70)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_back, color: Colors.white),
-                ],
-              ),
-              SizedBox(height: 12.h),
-              Wrap(
-                spacing: 8.w,
-                children: ['علمي رياضة', 'علمي علوم', 'أدبي']
-                    .map((s) => Chip(
-                        label: Text(s),
-                        backgroundColor: Colors.white24,
-                        labelStyle: const TextStyle(color: Colors.white)))
-                    .toList(),
-              ),
-              SizedBox(height: 12.h),
-              Row(
-                children: [
-                  _contestStat('5', 'مسابقات'),
-                  _contestStat('1547', 'التقييم'),
-                  _contestStat('#12', 'أفضل ترتيب'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _contestStat(String value, String label) {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 4.w),
-        padding: EdgeInsets.all(12.r),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .15),
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        child: Column(
-          children: [
-            Text(value, style: TextStyles.bold18.copyWith(color: Colors.white)),
-            Text(label, style: TextStyles.regular13.copyWith(color: Colors.white70)),
-          ],
-        ),
-      ),
     );
   }
 
@@ -589,6 +509,126 @@ class StudentDashboardSections extends StatelessWidget {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+class _ContestCard extends StatefulWidget {
+  const _ContestCard();
+
+  @override
+  State<_ContestCard> createState() => _ContestCardState();
+}
+
+class _ContestCardState extends State<_ContestCard> {
+  ContestDashboardData? _contestData;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final data = await context.read<StudentRepository>().getContestDashboard();
+      if (mounted) setState(() { _contestData = data; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = _contestData?.stats;
+    return StudentGlassCard(
+      title: '🏆 المسابقات الذهبية',
+      icon: '🥇',
+      actionLabel: 'لوحة المسابقات',
+      onAction: () => Navigator.pushNamed(context, StudentRoutes.contests),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, StudentRoutes.contestDashboard),
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.all(16.r),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+            ),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.emoji_events, color: Colors.white, size: 32.sp),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('تابع تقدمك في المسابقات الذهبية',
+                            style: TextStyles.bold18.copyWith(color: Colors.white)),
+                        Text('الصف الثالث الثانوي • جميع الشعب',
+                            style: TextStyles.regular13.copyWith(color: Colors.white70)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_back, color: Colors.white),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              Wrap(
+                spacing: 8.w,
+                children: ['علمي رياضة', 'علمي علوم', 'أدبي']
+                    .map((s) => Chip(
+                        label: Text(s),
+                        backgroundColor: Colors.white24,
+                        labelStyle: const TextStyle(color: Colors.white)))
+                    .toList(),
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  _contestStat(
+                    _loading ? '...' : '${stats?.totalContests ?? 0}',
+                    'مسابقات',
+                  ),
+                  _contestStat(
+                    _loading ? '...' : '${_contestData?.currentRating ?? 0}',
+                    'التقييم',
+                  ),
+                  _contestStat(
+                    _loading ? '...' : '#${stats?.bestRank ?? 0}',
+                    'أفضل ترتيب',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _contestStat(String value, String label) {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 4.w),
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .15),
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: Column(
+          children: [
+            Text(value, style: TextStyles.bold18.copyWith(color: Colors.white)),
+            Text(label, style: TextStyles.regular13.copyWith(color: Colors.white70)),
+          ],
+        ),
       ),
     );
   }

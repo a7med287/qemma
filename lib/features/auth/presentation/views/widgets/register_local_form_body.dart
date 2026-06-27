@@ -5,6 +5,20 @@ import 'register_shared_widgets.dart';
 import '../../../../../core/helpers/build_context_extensions.dart';
 import '../../../data/models/auth_models.dart';
 
+List<DropdownMenuItem<String>> _divisionItems(String year) {
+  if (year == 'first') {
+    return const [
+      DropdownMenuItem(value: 'Science-Maths', child: Text('علمي', style: TextStyle(fontFamily: 'Cairo'))),
+      DropdownMenuItem(value: 'Literary', child: Text('أدبي', style: TextStyle(fontFamily: 'Cairo'))),
+    ];
+  }
+  return const [
+    DropdownMenuItem(value: 'Literary', child: Text('أدبي', style: TextStyle(fontFamily: 'Cairo'))),
+    DropdownMenuItem(value: 'Science-Biology', child: Text('علمي علوم', style: TextStyle(fontFamily: 'Cairo'))),
+    DropdownMenuItem(value: 'Science-Maths', child: Text('علمي رياضة', style: TextStyle(fontFamily: 'Cairo'))),
+  ];
+}
+
 class RegisterLocalFormBody extends StatelessWidget {
   const RegisterLocalFormBody({
     super.key,
@@ -15,6 +29,7 @@ class RegisterLocalFormBody extends StatelessWidget {
     required this.confirmPasswordCtrl,
     required this.role,
     required this.division,
+    required this.year,
     required this.subject,
     required this.showPassword,
     required this.showConfirmPassword,
@@ -22,6 +37,7 @@ class RegisterLocalFormBody extends StatelessWidget {
     required this.isTeacher,
     required this.onRoleChanged,
     required this.onDivisionChanged,
+    required this.onYearChanged,
     required this.onSubjectChanged,
     required this.onTogglePassword,
     required this.onToggleConfirmPassword,
@@ -38,6 +54,7 @@ class RegisterLocalFormBody extends StatelessWidget {
   final TextEditingController confirmPasswordCtrl;
   final UserRole role;
   final String? division;
+  final String? year;
   final String? subject;
   final bool showPassword;
   final bool showConfirmPassword;
@@ -45,6 +62,7 @@ class RegisterLocalFormBody extends StatelessWidget {
   final bool isTeacher;
   final ValueChanged<UserRole> onRoleChanged;
   final ValueChanged<String?> onDivisionChanged;
+  final ValueChanged<String?> onYearChanged;
   final ValueChanged<String?> onSubjectChanged;
   final VoidCallback onTogglePassword;
   final VoidCallback onToggleConfirmPassword;
@@ -93,15 +111,23 @@ class RegisterLocalFormBody extends StatelessWidget {
         SizedBox(height: 16.h),
         if (role == UserRole.student) ...[
           dropdownField(
+            label: 'الصف الدراسي *',
+            value: year,
+            error: errors['year'],
+            items: studentYearOptions.map((opt) => DropdownMenuItem(
+              value: opt.$1,
+              child: Text(opt.$2, style: const TextStyle(fontFamily: 'Cairo')),
+            )).toList(),
+            onChanged: onYearChanged,
+            context: context,
+          ),
+          SizedBox(height: 12.h),
+          dropdownField<String>(
             label: 'القسم الدراسي *',
             value: division,
             error: errors['division'],
-            items: const [
-              DropdownMenuItem(value: 'science-math', child: Text('علمي رياضة', style: TextStyle(fontFamily: 'Cairo'))),
-              DropdownMenuItem(value: 'science-bio',  child: Text('علمي علوم',   style: TextStyle(fontFamily: 'Cairo'))),
-              DropdownMenuItem(value: 'arts',         child: Text('أدبي',        style: TextStyle(fontFamily: 'Cairo'))),
-            ],
-            onChanged: onDivisionChanged,
+            items: year != null ? _divisionItems(year!) : <DropdownMenuItem<String>>[],
+            onChanged: year != null ? onDivisionChanged : null,
             context: context,
           ),
           SizedBox(height: 12.h),

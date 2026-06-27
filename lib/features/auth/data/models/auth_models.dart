@@ -3,6 +3,12 @@ import 'package:qemma/constants.dart';
 
 enum UserRole { student, teacher, assistantTeacher, parent }
 
+const studentYearOptions = [
+  ('first', 'الصف الأول الثانوي'),
+  ('second', 'الصف الثاني الثانوي'),
+  ('third', 'الصف الثالث الثانوي'),
+];
+
 extension UserRoleExtension on UserRole {
   String get value {
     switch (this) {
@@ -39,6 +45,7 @@ class UserModel {
   final String? username;
   final UserRole role;
   final String? division;
+  final String? year;
   final String? subject;
   final String? phone;
   final String? authProvider;
@@ -53,6 +60,7 @@ class UserModel {
     this.username,
     required this.role,
     this.division,
+    this.year,
     this.subject,
     this.phone,
     this.authProvider,
@@ -74,6 +82,7 @@ class UserModel {
       username:     json['username'],
       role:         UserRoleExtension.fromString(json['role'] ?? 'student'),
       division:     json['division'],
+      year:         json['year'],
       subject:      json['subject'],
       phone:        json['phone'],
       authProvider: json['authProvider'],
@@ -100,6 +109,7 @@ class RegisterRequest {
   final UserRole role;
   final String phone;
   final String? division;
+  final String? year;
   final String? subject;
   final String? teacherName;
   final String? studentUsername;
@@ -111,6 +121,7 @@ class RegisterRequest {
     required this.role,
     required this.phone,
     this.division,
+    this.year,
     this.subject,
     this.teacherName,
     this.studentUsername,
@@ -124,7 +135,10 @@ class RegisterRequest {
       'role':     role.value,
       'phone':    phone,
     };
-    if (role == UserRole.student && division != null) map['division'] = division;
+    if (role == UserRole.student) {
+      if (division != null) map['division'] = division;
+      if (year != null) map['year'] = year;
+    }
     if ((role == UserRole.teacher || role == UserRole.assistantTeacher) && subject != null) {
       map['subject'] = subject;
     }

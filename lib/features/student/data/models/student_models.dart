@@ -470,10 +470,10 @@ class ContestHistoryItem {
     required this.contestName,
     required this.date,
     required this.difficulty,
-    required this.rank,
+    this.rank,
     required this.totalParticipants,
-    required this.score,
-    required this.ratingChange,
+    this.score,
+    this.ratingChange,
     required this.newRating,
     required this.solvedProblems,
     required this.totalProblems,
@@ -484,10 +484,10 @@ class ContestHistoryItem {
   final String contestName;
   final String date;
   final String difficulty;
-  final int rank;
+  final int? rank;
   final int totalParticipants;
-  final int score;
-  final int ratingChange;
+  final int? score;
+  final int? ratingChange;
   final int newRating;
   final int solvedProblems;
   final int totalProblems;

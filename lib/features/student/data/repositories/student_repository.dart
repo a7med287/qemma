@@ -14,7 +14,7 @@ class StudentRepository {
     try {
       return await call();
     } on DioException catch (e) {
-      throw ServerFailure(apiErrorMessage(e, fallback));
+      throw ServerFailure(apiErrorMessage(e, fallback), statusCode: e.response?.statusCode);
     }
   }
 

@@ -59,7 +59,21 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
       ContestParticipation data;
       try {
         data = await _repo.getParticipation(widget.contestId);
-      } catch (_) {
+      } on ServerFailure catch (e) {
+        if (e.statusCode == 409) {
+          if (mounted) {
+            buildSnackBar(context, e.message, isError: true);
+            Navigator.maybePop(context);
+          }
+          return;
+        }
+        if (e.statusCode == 403) {
+          if (mounted) {
+            buildSnackBar(context, e.message, isError: true);
+            Navigator.maybePop(context);
+          }
+          return;
+        }
         data = await _repo.startContest(widget.contestId);
       }
       if (!mounted) return;
@@ -69,7 +83,13 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
         _computeTimeLeft(data.endTime);
       });
     } on ServerFailure catch (e) {
-      if (mounted) setState(() { _error = e.message; _loading = false; });
+      if (!mounted) return;
+      if (e.statusCode == 403 || e.statusCode == 409) {
+        buildSnackBar(context, e.message, isError: true);
+        Navigator.maybePop(context);
+        return;
+      }
+      setState(() { _error = e.message; _loading = false; });
     } catch (_) {
       if (mounted) setState(() { _error = 'فشل تحميل المسابقة'; _loading = false; });
     }
@@ -100,6 +120,9 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
 
   bool get _isAnswered => _data?.answeredQuestionIds.contains(_currentQ?.id) ?? false;
 
+  int get _answeredCount => _data?.answeredQuestionIds.length ?? 0;
+  int get _totalCount => _questions.length;
+
   Future<void> _submitAnswer() async {
     if (_currentQ == null || _selectedOption == null || _submittingAnswer) return;
     setState(() => _submittingAnswer = true);
@@ -126,12 +149,18 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
 
   Future<void> _handleFinalSubmit() async {
     if (_submittingFinal) return;
+
+    final unanswered = _totalCount - _answeredCount;
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('تقديم المسابقة'),
-        content: const Text('هل أنت متأكد من تقديم المسابقة؟ لن تتمكن من تعديل إجاباتك بعد التقديم.'),
+        content: Text(
+          unanswered > 0
+              ? 'لم تؤكد إجابة $unanswered سؤال بعد. هل أنت متأكد من تقديم المسابقة؟ لا يمكنك العودة بعد التقديم.'
+              : 'هل أنت متأكد من تقديم المسابقة؟ لا يمكنك العودة بعد التقديم.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -152,22 +181,6 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
       if (mounted) {
         _timer?.cancel();
         setState(() { _success = true; _submittingFinal = false; });
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text('تم التقديم بنجاح!'),
-            content: const Text('سيتم الإعلان عن النتائج قريباً.'),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('حسناً'),
-              ),
-            ],
-          ),
-        ).then((_) {
-          if (mounted) Navigator.maybePop(context);
-        });
       }
     } catch (_) {
       if (mounted) {
@@ -219,10 +232,48 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
   Widget _buildBody(BuildContext context) {
     final isDark = context.isDark;
 
+    if (_success && _data != null) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.r),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('🎉', style: TextStyle(fontSize: 64.sp)),
+                SizedBox(height: 16.h),
+                Text('تم تقديم المسابقة بنجاح',
+                    style: TextStyles.bold20.copyWith(color: context.textPrimary)),
+                SizedBox(height: 8.h),
+                Text('ستظهر نتيجتك وترتيبك بعد انتهاء المسابقة واحتساب الدرجات.',
+                    style: TextStyles.regular14.copyWith(color: context.textSecondary),
+                    textAlign: TextAlign.center),
+                SizedBox(height: 24.h),
+                ElevatedButton(
+                  onPressed: () => Navigator.maybePop(context),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(200.w, 44.h),
+                  ),
+                  child: const Text('العودة لقائمة المسابقات'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     if (_loading) {
       return Scaffold(
         backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        appBar: AppBar(backgroundColor: const Color(0xFF7C3AED)),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF7C3AED),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -243,6 +294,8 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Icon(Icons.error, size: 48, color: Colors.red.shade400),
+                SizedBox(height: 16.h),
                 Text(_error!, style: TextStyles.regular14, textAlign: TextAlign.center),
                 SizedBox(height: 16.h),
                 ElevatedButton(onPressed: _initContest, child: const Text('إعادة المحاولة')),
@@ -261,6 +314,15 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
         : timeWarning
             ? Colors.orange
             : Colors.white;
+
+    final endDt = DateTime.tryParse(data.endTime);
+    final startDt = DateTime.tryParse(data.startTime);
+    final totalDuration = (endDt != null && startDt != null)
+        ? endDt.difference(startDt).inSeconds
+        : 1;
+    final timerPct = totalDuration > 0
+        ? (_timeLeft / totalDuration).clamp(0.0, 1.0)
+        : 1.0;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -303,6 +365,28 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
           ? const Center(child: Text('لا توجد أسئلة'))
           : Column(
               children: [
+                ClipRRect(
+                  child: LinearProgressIndicator(
+                    value: timerPct,
+                    minHeight: 4.h,
+                    backgroundColor: timerColor.withValues(alpha: 0.15),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      timeCritical ? Colors.red : timeWarning ? Colors.orange : Colors.green,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  child: Row(
+                    children: [
+                      Text(
+                        '$_answeredCount / $_totalCount تم التأكيد',
+                        style: TextStyles.regular13.copyWith(color: context.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
                 _buildQuestionNav(isDark),
                 Expanded(child: _buildQuestion(isDark)),
                 _buildBottomBar(isDark),
@@ -318,7 +402,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
       child: Row(
         children: [
           Text(
-            'سؤال ${_currentIndex + 1} من ${_questions.length}',
+            'سؤال ${_currentIndex + 1} من $_totalCount',
             style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
           ),
           const Spacer(),
@@ -327,7 +411,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               shrinkWrap: true,
-              itemCount: _questions.length,
+              itemCount: _totalCount,
               separatorBuilder: (_, __) => SizedBox(width: 4.w),
               itemBuilder: (_, i) {
                 final answered = _data!.answeredQuestionIds.contains(_questions[i].id);
@@ -339,10 +423,10 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isCurrent
-                          ? const Color(0xFF7C3AED)
+                          ? const Color(0xFFDB2777)
                           : answered
-                              ? Colors.green
-                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+                              ? const Color(0xFF059669)
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: Text(
@@ -351,7 +435,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                         fontFamily: 'Cairo',
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
-                        color: isCurrent || answered ? Colors.white : context.textPrimary,
+                        color: isCurrent || answered ? Colors.white : context.textSecondary,
                       ),
                     ),
                   ),
@@ -378,10 +462,13 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: answered
-                  ? Colors.green
-                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+            border: Border(
+              top: BorderSide(
+                color: answered
+                    ? const Color(0xFF059669)
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+                width: 4,
+              ),
             ),
           ),
           child: Column(
@@ -400,6 +487,8 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                   Chip(
                     label: Text('${q.pointValue} نقطة',
                         style: TextStyle(fontSize: 10.sp, fontFamily: 'Cairo')),
+                    backgroundColor: const Color(0xFFFEF3C7),
+                    labelStyle: const TextStyle(color: Color(0xFFF59E0B)),
                     visualDensity: VisualDensity.compact,
                   ),
                   const Spacer(),
@@ -407,7 +496,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                     Chip(
                       label: Text('تم الإرسال',
                           style: TextStyle(fontSize: 10.sp, fontFamily: 'Cairo', color: Colors.white)),
-                      backgroundColor: Colors.green,
+                      backgroundColor: const Color(0xFF059669),
                       visualDensity: VisualDensity.compact,
                     ),
                 ],
@@ -496,7 +585,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                 ),
               ),
             if (_currentIndex > 0) SizedBox(width: 12.w),
-            if (_currentIndex < _questions.length - 1)
+            if (_currentIndex < _totalCount - 1)
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _submittingFinal ? null : () => setState(() => _currentIndex++),
@@ -524,7 +613,7 @@ class _TakeContestViewState extends State<TakeContestView> with WidgetsBindingOb
                 child: ElevatedButton(
                   onPressed: _success || _submittingFinal ? null : _handleFinalSubmit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: const Color(0xFF059669),
                     foregroundColor: Colors.white,
                   ),
                   child: _submittingFinal

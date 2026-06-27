@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/widgets/app_background.dart';
 import '../../../../core/helpers/build_snack_bar.dart';
 import '../../data/models/auth_models.dart';
@@ -30,6 +32,7 @@ class _RegisterViewState extends State<RegisterView> {
 
   UserRole _role     = UserRole.student;
   String? _division;
+  String? _year;
   String? _subject;
   bool _showPassword        = false;
   bool _showConfirmPassword = false;
@@ -102,8 +105,13 @@ class _RegisterViewState extends State<RegisterView> {
     } else if (!RegExp(r'^01[0-2,5]{1}[0-9]{8}$').hasMatch(phone)) {
       errors['phone'] = 'رقم الهاتف غير صالح (مثال: 01012345678)';
     }
-    if (_role == UserRole.student && (_division == null || _division!.isEmpty)) {
-      errors['division'] = 'يرجى اختيار القسم الدراسي';
+    if (_role == UserRole.student) {
+      if (_year == null || _year!.isEmpty) {
+        errors['year'] = 'يرجى اختيار الصف الدراسي';
+      }
+      if (_division == null || _division!.isEmpty) {
+        errors['division'] = 'يرجى اختيار القسم الدراسي';
+      }
     }
     if ((_role == UserRole.teacher || _role == UserRole.assistantTeacher) &&
         (_subject == null || _subject!.isEmpty)) {
@@ -130,6 +138,7 @@ class _RegisterViewState extends State<RegisterView> {
         role:            _role,
         phone:           _phoneCtrl.text.trim(),
         division:        _division,
+        year:            _year,
         subject:         _subject,
         teacherName:     teacherName,
         studentUsername: studentUsername,
@@ -138,10 +147,16 @@ class _RegisterViewState extends State<RegisterView> {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, user.dashboardRoute);
     } catch (e) {
-      debugPrint(e.toString());
+      final msg = e is DioException ? apiErrorMessage(e) : _extractErrorMessage(e);
+      if (mounted) buildSnackBar(context, msg);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  String _extractErrorMessage(dynamic e) {
+    final s = e.toString();
+    return s.replaceAll(RegExp(r'^Exception:\s*'), '');
   }
 
   Future<void> _lookupTeacher() async {
@@ -265,13 +280,15 @@ class _RegisterViewState extends State<RegisterView> {
                 confirmPasswordCtrl: _confirmPasswordCtrl,
                 role: _role,
                 division: _division,
+                year: _year,
                 subject: _subject,
                 showPassword: _showPassword,
                 showConfirmPassword: _showConfirmPassword,
                 errors: _errors,
                 isTeacher: _role == UserRole.teacher || _role == UserRole.assistantTeacher,
-                onRoleChanged: (r) => setState(() { _role = r; _errors.remove('division'); _errors.remove('subject'); }),
+                onRoleChanged: (r) => setState(() { _role = r; _year = null; _division = null; _errors.remove('year'); _errors.remove('division'); _errors.remove('subject'); }),
                 onDivisionChanged: (v) => setState(() { _division = v; _errors.remove('division'); }),
+                onYearChanged: (v) => setState(() { _year = v; _division = null; _errors.remove('year'); _errors.remove('division'); }),
                 onSubjectChanged: (v) => setState(() { _subject = v; _errors.remove('subject'); }),
                 onTogglePassword: () => setState(() => _showPassword = !_showPassword),
                 onToggleConfirmPassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),

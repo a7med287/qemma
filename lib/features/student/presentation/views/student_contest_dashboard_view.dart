@@ -9,6 +9,21 @@ import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
 import '../widgets/student_shared_widgets.dart';
 
+class _RatingInfo {
+  final Color color;
+  final String rank;
+  const _RatingInfo({required this.color, required this.rank});
+}
+
+_RatingInfo _getRatingColor(int rating) {
+  if (rating < 1000) return const _RatingInfo(color: Color(0xFF9CA3AF), rank: 'مبتدئ');
+  if (rating < 1400) return const _RatingInfo(color: Color(0xFF06B6D4), rank: 'مبتدئ متقدم');
+  if (rating < 1700) return const _RatingInfo(color: Color(0xFF3B82F6), rank: 'كفء');
+  if (rating < 2000) return const _RatingInfo(color: Color(0xFF8B5CF6), rank: 'متقدم');
+  if (rating < 2400) return const _RatingInfo(color: Color(0xFFF97316), rank: 'خبير');
+  return const _RatingInfo(color: Color(0xFFEF4444), rank: 'خبير دولي');
+}
+
 class StudentContestDashboardView extends StatefulWidget {
   const StudentContestDashboardView({super.key});
 
@@ -71,6 +86,7 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
     final data = _data!;
     final history = data.contests;
     final rating = data.ratingHistory;
+    final ratingInfo = _getRatingColor(data.currentRating);
 
     return StudentPageShell(
       title: '🏆 لوحة المسابقات',
@@ -91,25 +107,45 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                 children: [
                   CircleAvatar(
                     radius: 40.r,
-                    backgroundColor: Colors.amber.shade100,
+                    backgroundColor: ratingInfo.color.withValues(alpha: .2),
                     child: Text('${data.currentRating}',
-                        style: TextStyles.bold20.copyWith(color: Colors.amber.shade800)),
+                        style: TextStyles.bold20.copyWith(color: ratingInfo.color)),
                   ),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('تقييمك الحالي', style: TextStyles.semiBold16.copyWith(color: context.textPrimary)),
+                        Text('التقييم الحالي', style: TextStyles.semiBold16.copyWith(color: context.textPrimary)),
+                        SizedBox(height: 4.h),
+                        Chip(
+                          label: Text(ratingInfo.rank),
+                          backgroundColor: ratingInfo.color,
+                          labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                        SizedBox(height: 4.h),
                         Text('أفضل ترتيب #${data.stats.bestRank}', style: TextStyles.regular14.copyWith(color: context.textSecondary)),
-                        if (history.isNotEmpty && history.first.ratingChange != 0)
-                          Text('${history.first.ratingChange > 0 ? '+' : ''}${history.first.ratingChange} من آخر مسابقة',
-                              style: TextStyles.regular13.copyWith(
-                                color: history.first.ratingChange > 0 ? Colors.green : Colors.red,
-                              )),
+                        if (history.isNotEmpty && history.first.ratingChange != null)
+                          Row(
+                            children: [
+                              Icon(
+                                history.first.ratingChange! > 0 ? Icons.trending_up : Icons.trending_down,
+                                size: 16,
+                                color: history.first.ratingChange! > 0 ? Colors.green : Colors.red,
+                              ),
+                              SizedBox(width: 4.w),
+                              Text('${history.first.ratingChange! > 0 ? '+' : ''}${history.first.ratingChange} من آخر مسابقة',
+                                  style: TextStyles.regular13.copyWith(
+                                    color: history.first.ratingChange! > 0 ? Colors.green : Colors.red,
+                                  )),
+                            ],
+                          ),
                       ],
                     ),
                   ),
+                  Icon(Icons.emoji_events, size: 48.sp, color: ratingInfo.color.withValues(alpha: .3)),
                 ],
               ),
             ),
@@ -126,12 +162,58 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                             LineChartBarData(
                               spots: List.generate(rating.length,
                                   (i) => FlSpot(i.toDouble(), rating[i].rating.toDouble())),
-                              color: const Color(0xFFF59E0B),
+                              color: ratingInfo.color,
                               isCurved: true,
                               belowBarData: BarAreaData(
-                                  show: true, color: const Color(0xFFF59E0B).withValues(alpha: .1)),
+                                  show: true, color: ratingInfo.color.withValues(alpha: .1)),
                             ),
                           ],
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 28.h,
+                                getTitlesWidget: (v, _) {
+                                  final i = v.toInt();
+                                  if (i < 0 || i >= rating.length) return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: EdgeInsets.only(top: 8.h),
+                                    child: Text(
+                                      rating[i].contestName.length > 6
+                                          ? '${rating[i].contestName.substring(0, 6)}..'
+                                          : rating[i].contestName,
+                                      style: TextStyle(fontSize: 8.sp, color: context.textSecondary),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28)),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          ),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            getDrawingHorizontalLine: (v) => FlLine(
+                              color: context.borderColor,
+                              strokeWidth: 0.5,
+                            ),
+                          ),
+                          lineTouchData: LineTouchData(
+                            touchTooltipData: LineTouchTooltipData(
+                              getTooltipItems: (touchedSpots) {
+                                return touchedSpots.map((spot) {
+                                  final i = spot.spotIndex;
+                                  final name = i < rating.length ? rating[i].contestName : '';
+                                  return LineTooltipItem(
+                                    '$name\nالتقييم: ${spot.y.toInt()}',
+                                    TextStyle(color: ratingInfo.color, fontWeight: FontWeight.bold, fontSize: 12.sp, fontFamily: 'Cairo'),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                          ),
                         ),
                       ),
               ),
@@ -143,8 +225,8 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 1.5,
               children: [
-                _statCard('${data.stats.totalContests}', 'مسابقات'),
-                _statCard('${data.stats.totalSolved}', 'مسائل محلولة'),
+                _statCard('${data.stats.totalContests}', 'مسابقة ذهبية'),
+                _statCard('${data.stats.totalSolved}', 'مسألة محلولة'),
                 _statCard('#${data.stats.avgRank}', 'متوسط الترتيب'),
                 _statCard('#${data.stats.bestRank}', 'أفضل ترتيب'),
               ],
@@ -152,21 +234,106 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
             SizedBox(height: 16.h),
             if (history.isNotEmpty)
               StudentGlassCard(
-                title: '📋 سجل المسابقات',
+                title: '📋 سجل المسابقات الذهبية',
                 child: Column(
-                  children: history.map((ContestHistoryItem h) => ListTile(
-                        title: Text(h.contestName),
-                        subtitle: Text('${h.date} • ${_difficultyLabel(h.difficulty)}'),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                  children: history.map((ContestHistoryItem h) {
+                    return InkWell(
+                      onTap: () => setState(() => _selected = h),
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(color: context.borderColor, width: 0.5)),
+                        ),
+                        child: Row(
                           children: [
-                            Text('#${h.rank}', style: TextStyles.semiBold14.copyWith(color: Colors.amber)),
-                            Text('${h.score} نقطة', style: TextStyles.regular13),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(h.contestName, style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
+                                  SizedBox(height: 4.h),
+                                  Row(
+                                    children: [
+                                      Chip(
+                                        label: Text(_difficultyLabel(h.difficulty)),
+                                        backgroundColor: _difficultyColor(h.difficulty).withValues(alpha: .15),
+                                        labelStyle: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.bold),
+                                        visualDensity: VisualDensity.compact,
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                      SizedBox(width: 4.w),
+                                      Chip(
+                                        label: Text(h.date),
+                                        backgroundColor: context.isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                                        labelStyle: TextStyle(fontSize: 9.sp),
+                                        visualDensity: VisualDensity.compact,
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(h.rank != null ? '#${h.rank}' : '—',
+                                      style: TextStyles.semiBold14.copyWith(color: Colors.amber)),
+                                  Text('من ${h.totalParticipants}', style: TextStyle(fontSize: 9.sp, color: context.textSecondary)),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(h.score != null ? '${h.score}' : '—',
+                                      style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
+                                  Text('نقطة', style: TextStyle(fontSize: 9.sp, color: context.textSecondary)),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text('${h.solvedProblems}/${h.totalProblems}',
+                                  style: TextStyles.regular13.copyWith(color: context.textPrimary)),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: h.ratingChange != null
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          (h.ratingChange ?? 0) > 0 ? Icons.trending_up : Icons.trending_down,
+                                          size: 16,
+                                          color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
+                                        ),
+                                        SizedBox(width: 2.w),
+                                        Text(
+                                          '${(h.ratingChange ?? 0) > 0 ? '+' : ''}${h.ratingChange}',
+                                          style: TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontSize: 12.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Text('—', style: TextStyle(color: context.textSecondary)),
+                            ),
+                            Icon(Icons.arrow_back_ios_new, size: 14, color: context.textSecondary),
                           ],
                         ),
-                        onTap: () => setState(() => _selected = h),
-                      )).toList(),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
           ],
@@ -174,6 +341,12 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
       ),
     );
   }
+
+  Color _difficultyColor(String d) => switch (d) {
+        'easy' => Colors.green,
+        'hard' => Colors.red,
+        _ => Colors.orange,
+      };
 
   Widget _statCard(String value, String label) {
     return Container(
@@ -194,9 +367,12 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
   }
 
   Widget _buildDetail(BuildContext context, ContestHistoryItem h) {
+    final ratingInfo = _getRatingColor(h.newRating);
+    final diffColor = _difficultyColor(h.difficulty);
+
     return StudentPageShell(
       title: h.contestName,
-      gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+      gradient: LinearGradient(colors: [diffColor, diffColor.withValues(alpha: .7)]),
       onBack: () => setState(() => _selected = null),
       body: Padding(
         padding: EdgeInsets.all(16.r),
@@ -205,23 +381,63 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
             CircleAvatar(
               radius: 48.r,
               backgroundColor: Colors.amber.shade100,
-              child: Text('#${h.rank}',
+              child: Text('#${h.rank ?? '—'}',
                   style: TextStyles.bold25.copyWith(color: Colors.amber.shade800)),
             ),
-            SizedBox(height: 16.h),
-            Text('من ${h.totalParticipants} مشارك', style: TextStyles.regular14),
+            SizedBox(height: 8.h),
+            Text('من ${h.totalParticipants} مشارك', style: TextStyles.regular14.copyWith(color: context.textSecondary)),
             SizedBox(height: 24.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _detailStat('${h.score}', 'النقاط'),
+                _detailStat('${h.score ?? '—'}', 'النقاط'),
                 _detailStat('${h.solvedProblems}/${h.totalProblems}', 'محلولة'),
                 _detailStat(h.duration, 'المدة'),
-                _detailStat('${h.ratingChange > 0 ? '+' : ''}${h.ratingChange}', 'التقييم'),
+                _detailStat(
+                  '${h.ratingChange != null ? ((h.ratingChange ?? 0) > 0 ? '+' : '') : ''}${h.ratingChange ?? '—'}',
+                  'التقييم',
+                ),
               ],
             ),
-            SizedBox(height: 24.h),
-            Text('التقييم الجديد: ${h.newRating}', style: TextStyles.bold18),
+            SizedBox(height: 16.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  h.ratingChange != null
+                      ? ((h.ratingChange ?? 0) > 0 ? Icons.trending_up : Icons.trending_down)
+                      : Icons.remove,
+                  color: h.ratingChange != null
+                      ? ((h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red)
+                      : context.textSecondary,
+                  size: 24,
+                ),
+                SizedBox(width: 8.w),
+              ],
+            ),
+            SizedBox(height: 16.h),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16.r),
+              decoration: BoxDecoration(
+                color: ratingInfo.color.withValues(alpha: .1),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: ratingInfo.color.withValues(alpha: .3)),
+              ),
+              child: Column(
+                children: [
+                  Text('التقييم الجديد', style: TextStyles.semiBold16.copyWith(color: context.textSecondary)),
+                  SizedBox(height: 4.h),
+                  Text('${h.newRating}', style: TextStyles.bold25.copyWith(color: ratingInfo.color)),
+                  Chip(
+                    label: Text(ratingInfo.rank),
+                    backgroundColor: ratingInfo.color,
+                    labelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

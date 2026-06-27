@@ -111,7 +111,7 @@ Widget dropdownField<T>({
   required String label,
   required T? value,
   required List<DropdownMenuItem<T>> items,
-  required ValueChanged<T?> onChanged,
+  ValueChanged<T?>? onChanged,
   String? error,
   required BuildContext context,
 }) {
