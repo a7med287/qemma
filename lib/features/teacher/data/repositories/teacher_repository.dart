@@ -306,10 +306,61 @@ class TeacherRepository {
 
   // ── Analytics ──────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> getAnalytics() => _guard(() async {
-        final res = await _dio.get('/analytics/teacher');
+  Future<Map<String, dynamic>> getAnalytics([String? period]) => _guard(() async {
+        final query = period != null ? {'period': period} : null;
+        final res = await _dio.get('/analytics/teacher', queryParameters: query);
         return asMap(unwrapBody(res.data));
       }, 'فشل تحميل التقارير');
+
+  Future<List<Map<String, dynamic>>> getAnalyticsCourses() => _guard(() async {
+        final res = await _dio.get('/courses/my');
+        final data = unwrapBody(res.data);
+        return asMapList(data);
+      }, 'فشل تحميل الكورسات');
+
+  Future<Map<String, dynamic>> analyzeCourse(String courseId) => _guard(() async {
+        final res = await _dio.post('/analytics/teacher/courses/$courseId/analyze');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحليل الكورس');
+
+  Future<Map<String, dynamic>?> getTeacherRating() => _guard(() async {
+        try {
+          final meRes = await _dio.get('/auth/me');
+          final me = asMap(unwrapBody(meRes.data));
+          final teacherId = (me['teacher'] as Map?)?['id'];
+          if (teacherId == null) return null;
+          final res = await _dio.get('/students/rate/teacher/$teacherId');
+          final data = unwrapBody(res.data);
+          return data == null ? null : asMap(data);
+        } catch (_) {
+          return null;
+        }
+      }, 'فشل تحميل تقييمات المدرس');
+
+  Future<Map<String, dynamic>> getCourseDetail(String courseId) => _guard(() async {
+        try {
+          final res = await _dio.get('/courses/public/$courseId');
+          return asMap(unwrapBody(res.data));
+        } catch (_) {
+          return {};
+        }
+      }, 'فشل تحميل تفاصيل الكورس');
+
+  Future<Map<String, dynamic>?> getLessonRating(String lessonId) => _guard(() async {
+        try {
+          final res = await _dio.get('/students/rate/lesson/$lessonId');
+          final data = unwrapBody(res.data);
+          return data == null ? null : asMap(data);
+        } catch (_) {
+          return null;
+        }
+      }, 'فشل تحميل تقييم الدرس');
+
+  Future<Map<String, dynamic>> exportAnalytics() => _guard(() async {
+        final res = await _dio.get('/analytics/teacher/export',
+            options: Options(responseType: ResponseType.bytes));
+        return {'bytes': res.data, 'filename': 'teacher-statistics.xlsx'};
+      }, 'فشل تصدير التقارير');
 
   // ── Exams ──────────────────────────────────────────────────────
 
