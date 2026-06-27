@@ -362,6 +362,35 @@ class TeacherRepository {
         return {'bytes': res.data, 'filename': 'teacher-statistics.xlsx'};
       }, 'فشل تصدير التقارير');
 
+  // ── Lessons ─────────────────────────────────────────────────────
+
+  Future<List<Lesson>> getLessons(String courseId) => _guard(() async {
+        final res = await _dio.get('/lessons/course/$courseId');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(Lesson.fromJson).toList();
+      }, 'فشل تحميل الدروس');
+
+  Future<Map<String, dynamic>> updateLesson(String lessonId, {
+    required String title,
+    String? content,
+    String? summary,
+    int? order,
+    bool? isPublished,
+  }) => _guard(() async {
+        final res = await _dio.put('/lessons/$lessonId', data: {
+          'title': title.trim(),
+          if (content != null) 'content': content,
+          if (summary != null) 'summary': summary,
+          if (order != null) 'order': order,
+          if (isPublished != null) 'isPublished': isPublished,
+        });
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحديث الدرس');
+
+  Future<void> deleteLesson(String lessonId) => _guard(() async {
+        await _dio.delete('/lessons/$lessonId');
+      }, 'فشل حذف الدرس');
+
   // ── Exams ──────────────────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getTeacherExams() => _guard(() async {

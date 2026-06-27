@@ -9,6 +9,7 @@ import '../../data/repositories/teacher_repository.dart';
 import 'teacher_edit_course_view.dart';
 import 'widgets/teacher_course_card.dart';
 import 'widgets/teacher_course_filter_bar.dart';
+import 'widgets/teacher_lessons_dialog.dart';
 
 class TeacherMyCoursesView extends StatefulWidget {
   static const routeName = '/teacher/my-courses';
@@ -62,11 +63,11 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
       setState(() => _courses.removeWhere((c) => c.id == course.id));
       _showToast('تم حذف الكورس: ${course.title}');
     } on Failure catch (e) {
-      if (!mounted) return;
       _showToast(e.message, error: true);
+      rethrow;
     } catch (_) {
-      if (!mounted) return;
       _showToast('فشل حذف الكورس', error: true);
+      rethrow;
     }
   }
 
@@ -88,14 +89,31 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
       buildSnackBar(context, message, isError: error);
 
   Future<void> _showDeleteDialog(TeacherCourse course) async {
-    final confirmed = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (_) => TeacherCourseDeleteDialog(
         course: course,
         isDark: context.isDark,
+        onConfirm: () => _handleDelete(course),
       ),
     );
-    if (confirmed == true) _handleDelete(course);
+  }
+
+  Future<void> _showLessonsDialog(TeacherCourse course) async {
+    final repo = context.read<TeacherRepository>();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => CourseLessonsDialog(
+        course: course,
+        repository: repo,
+        isDark: context.isDark,
+        onLessonChanged: _fetchCourses,
+      ),
+    );
+    if (result == 'add_lesson' && mounted) {
+      await Navigator.pushNamed(context, '/teacher/upload-lesson', arguments: course.id);
+      _fetchCourses();
+    }
   }
 
   Future<void> _openEdit(TeacherCourse course) async {
@@ -116,17 +134,6 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
           _buildHeader(context),
           Expanded(child: _buildBody(context)),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.pushNamed(context, '/teacher/courses/create');
-          if (result == true) _fetchCourses();
-        },
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('إنشاء كورس',
-            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -168,6 +175,24 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
                       Text('إدارة ومتابعة جميع كورساتك',
                           style: TextStyle(color: Colors.white70, fontSize: 12.sp, fontFamily: 'Cairo')),
                     ],
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(context, '/teacher/courses/create');
+                    if (result == true) _fetchCourses();
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('إنشاء كورس جديد',
+                      style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 12)),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF2563EB),
+                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                   ),
                 ),
               ],
@@ -243,7 +268,7 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
             )
           else
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 80.h),
+              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 24.h),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2, childAspectRatio: 0.7,
@@ -255,6 +280,7 @@ class _TeacherMyCoursesViewState extends State<TeacherMyCoursesView> {
                     onEdit: () => _openEdit(_filteredCourses[i]),
                     onTogglePublish: () => _handleTogglePublish(_filteredCourses[i]),
                     onDelete: () => _showDeleteDialog(_filteredCourses[i]),
+                    onTap: () => _showLessonsDialog(_filteredCourses[i]),
                   ),
                   childCount: _filteredCourses.length,
                 ),

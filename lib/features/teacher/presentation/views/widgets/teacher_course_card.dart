@@ -12,12 +12,14 @@ class TeacherCourseCard extends StatelessWidget {
     required this.onEdit,
     required this.onTogglePublish,
     required this.onDelete,
+    this.onTap,
   });
 
   final TeacherCourse course;
   final VoidCallback onEdit;
   final VoidCallback onTogglePublish;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   Widget _buildThumbnailImage(String thumbnail) {
     if (thumbnail.startsWith('data:image')) {
@@ -71,14 +73,19 @@ class TeacherCourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDark;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
@@ -182,6 +189,8 @@ class TeacherCourseCard extends StatelessWidget {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 
@@ -203,18 +212,40 @@ class TeacherCourseCard extends StatelessWidget {
   }
 }
 
-class TeacherCourseDeleteDialog extends StatelessWidget {
+class TeacherCourseDeleteDialog extends StatefulWidget {
   const TeacherCourseDeleteDialog({
     super.key,
     required this.course,
     required this.isDark,
+    required this.onConfirm,
   });
 
   final TeacherCourse course;
   final bool isDark;
+  final Future<void> Function() onConfirm;
+
+  @override
+  State<TeacherCourseDeleteDialog> createState() => _TeacherCourseDeleteDialogState();
+}
+
+class _TeacherCourseDeleteDialogState extends State<TeacherCourseDeleteDialog> {
+  bool _submitting = false;
+
+  Future<void> _handleConfirm() async {
+    setState(() => _submitting = true);
+    try {
+      await widget.onConfirm();
+      if (mounted) Navigator.pop(context, true);
+    } catch (_) {
+      // Error toast already shown by onConfirm
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDark;
     return AlertDialog(
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -256,11 +287,11 @@ class TeacherCourseDeleteDialog extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(course.title,
+                  Text(widget.course.title,
                       style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700, fontSize: 14.sp,
                           color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A))),
-                  if (course.description != null && course.description!.isNotEmpty)
-                    Text(course.description!,
+                  if (widget.course.description != null && widget.course.description!.isNotEmpty)
+                    Text(widget.course.description!,
                         maxLines: 2, overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontFamily: 'Cairo', fontSize: 11.sp,
                             color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3A1))),
@@ -287,20 +318,31 @@ class TeacherCourseDeleteDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: _submitting ? null : () => Navigator.pop(context, false),
           child: Text('إلغاء',
               style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700,
                   color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
         ),
         ElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: _submitting ? null : _handleConfirm,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFDC2626),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
           ),
-          child: const Text('نعم، احذف الكورس',
-              style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
+          child: _submitting
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                    SizedBox(width: 8.w),
+                    const Text('جاري الحذف...',
+                        style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
+                  ],
+                )
+              : const Text('نعم، احذف الكورس',
+                  style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
         ),
       ],
     );
