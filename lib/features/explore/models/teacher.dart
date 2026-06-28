@@ -123,9 +123,9 @@ class TeacherCourse {
   final String title;
   final double price;
   final int students;
-  final double rating;
   final String category;
   final String level;
+  double rating;
   TeacherCourse({required this.id, required this.title, required this.price, required this.students, required this.rating, required this.category, required this.level});
 }
 
@@ -134,8 +134,8 @@ class TeacherBook {
   final String title;
   final double price;
   final int downloads;
-  final double rating;
   final String subject;
+  double rating;
   TeacherBook({required this.id, required this.title, required this.price, required this.downloads, required this.rating, required this.subject});
 }
 

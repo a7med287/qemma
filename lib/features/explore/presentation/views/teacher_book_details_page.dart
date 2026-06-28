@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../explore_colors.dart';
+import '../../explore_image_helper.dart';
 import '../../services/books_service.dart';
 import 'widgets/info_card.dart';
 import 'widgets/info_row.dart';
@@ -43,6 +44,16 @@ class _TeacherBookDetailsPageState extends State<TeacherBookDetailsPage> {
     final subject = _book?['subject'] as String? ?? '';
     final style = ExploreColors.subjectColors[subject];
     return style != null ? Color(style.color) : ExploreColors.primary;
+  }
+
+  Widget _buildCoverFallback() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _getColor().withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 48),
+    );
   }
 
   List<Color> _getGradient() {
@@ -123,14 +134,19 @@ class _TeacherBookDetailsPageState extends State<TeacherBookDetailsPage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 100, height: 130,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: b['coverImage'] != null ? null : _getColor().withValues(alpha: 0.3),
-                        image: b['coverImage'] != null ? DecorationImage(image: NetworkImage(b['coverImage']), fit: BoxFit.cover) : null,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 100,
+                        height: 130,
+                        child: b['coverImage'] != null
+                            ? ExploreImage(
+                                imageUrl: b['coverImage'],
+                                fit: BoxFit.cover,
+                                fallback: _buildCoverFallback(),
+                              )
+                            : _buildCoverFallback(),
                       ),
-                      child: b['coverImage'] == null ? const Icon(Icons.menu_book_rounded, color: Colors.white, size: 48) : null,
                     ),
                     const SizedBox(width: 16),
                     Expanded(

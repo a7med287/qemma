@@ -62,9 +62,10 @@ class Course {
           ? CourseTeacher(
               id: teacherData['id'].toString(),
               userId: teacherData['userId']?.toString() ?? '',
-              name: teacherData['name'] as String? ?? 'مدرس',
+              name: teacherData['user']?['name'] as String? ?? teacherData['name'] as String? ?? 'مدرس',
               rating: 0,
               students: 0,
+              avatar: teacherData['user']?['avatar'] as String? ?? teacherData['avatar'] as String?,
             )
           : CourseTeacher(id: '', userId: '', name: 'مدرس', rating: 0, students: 0),
     );

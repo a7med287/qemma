@@ -3,9 +3,8 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../explore_colors.dart';
 import '../../services/courses_service.dart';
-import 'widgets/info_card.dart';
-import 'widgets/header_stat.dart';
 import 'teacher_profile_page.dart';
+import 'checkout_page.dart';
 
 class CourseDetailsPage extends StatefulWidget {
   final String courseId;
@@ -38,6 +37,18 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     }
   }
 
+  Color _getColor() {
+    final category = _course?['category'] as String? ?? '';
+    final style = ExploreColors.subjectColors[category];
+    return style != null ? Color(style.color) : ExploreColors.primary;
+  }
+
+  List<Color> _getGradient() {
+    final category = _course?['category'] as String? ?? '';
+    final style = ExploreColors.subjectColors[category];
+    return style?.gradient ?? ExploreColors.blueGradient;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDark;
@@ -55,7 +66,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Container(height: 300, color: Colors.white),
+              Container(height: 280, color: Colors.white),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -91,150 +102,360 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
     );
   }
 
-  Color _getColor() {
-    if (_course?['color'] != null) return Color(_course!['color']);
-    return ExploreColors.primary;
-  }
-
-  List<Color> _getGradient() {
-    final category = _course?['category'] as String? ?? '';
-    final style = ExploreColors.subjectColors[category];
-    return style?.gradient ?? ExploreColors.blueGradient;
-  }
-
   Widget _buildContent(bool isDark) {
     final c = _course!;
+    final gradient = _getGradient();
+    final color = _getColor();
+    final lessons = (c['lessons'] as List<dynamic>?) ?? [];
+    final prerequisites = (c['prerequisites'] as List<dynamic>?) ?? [];
+    final teacher = c['teacher'] as Map<String, dynamic>?;
+    final stats = c['stats'] as Map<String, dynamic>?;
+    final lessonsCount = stats?['lessons'] ?? lessons.length;
+    final studentsCount = stats?['enrollments'] ?? 0;
+    final duration = c['duration'];
+    final durationText = duration != null ? '$duration ساعة' : '';
+
     return SingleChildScrollView(
       child: Column(
         children: [
+          // ═══ HEADER ═══
           Container(
             padding: const EdgeInsets.fromLTRB(16, 48, 16, 64),
-            decoration: BoxDecoration(gradient: LinearGradient(colors: _getGradient())),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            decoration: BoxDecoration(gradient: LinearGradient(colors: gradient)),
+            child: Stack(
               children: [
-                Container(
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                  child: IconButton(icon: const Icon(Icons.arrow_back_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
-                  child: Text(c['category'] ?? '', style: const TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.white)),
-                ),
-                const SizedBox(height: 12),
-                Text(c['title'] ?? '', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: Colors.white)),
-                const SizedBox(height: 12),
-                if (c['description'] != null)
-                  Text(c['description'], style: TextStyle(fontSize: 14, fontFamily: 'Cairo', color: Colors.white.withValues(alpha: 0.95))),
-                const SizedBox(height: 16),
-                Row(
+                // Decorative circles
+                Positioned(top: -50, right: -50, child: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.1)))),
+                Positioned(bottom: -80, left: -80, child: Container(width: 200, height: 200, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.08)))),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HeaderStat(icon: Icons.people_rounded, text: '${c['stats']?['enrollments'] ?? 0} طالب'),
-                    const SizedBox(width: 24),
-                    HeaderStat(icon: Icons.access_time_rounded, text: '${c['duration'] ?? 0} ساعة'),
-                    const SizedBox(width: 24),
-                    HeaderStat(icon: Icons.play_circle_outline_rounded, text: '${c['stats']?['lessons'] ?? 0} درس'),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (c['teacher'] != null)
-                  GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfilePage(teacherId: c['teacher']['id'].toString()))),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
+                    // Back button
+                    Container(
                       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.white.withValues(alpha: 0.3),
-                            child: const Icon(Icons.person_rounded, color: Colors.white),
+                      child: IconButton(icon: const Icon(Icons.arrow_back_rounded, color: Colors.white), onPressed: () => Navigator.pop(context)),
+                    ),
+                    const SizedBox(height: 16),
+                    // Subject badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
+                      child: Text(c['category'] ?? '', style: const TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.white)),
+                    ),
+                    const SizedBox(height: 12),
+                    // Title
+                    Text(c['title'] ?? '', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: Colors.white)),
+                    const SizedBox(height: 12),
+                    // Description
+                    if (c['description'] != null)
+                      Text(c['description'], style: TextStyle(fontSize: 14, fontFamily: 'Cairo', color: Colors.white.withValues(alpha: 0.95))),
+                    const SizedBox(height: 16),
+                    // Stats row
+                    Row(
+                      children: [
+                        _headerStat(Icons.people_rounded, '$studentsCount طالب', Colors.white),
+                        const SizedBox(width: 24),
+                        _headerStat(Icons.access_time_rounded, durationText, Colors.white),
+                        const SizedBox(width: 24),
+                        _headerStat(Icons.play_circle_outline_rounded, '$lessonsCount درس', Colors.white),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Teacher info (clickable)
+                    if (teacher != null)
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfilePage(teacherId: teacher['id'].toString()))),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.white.withValues(alpha: 0.3),
+                                child: const Icon(Icons.person_rounded, color: Colors.white),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('المدرس', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: Colors.white.withValues(alpha: 0.8))),
+                                    Text(teacher['user']?['name'] ?? teacher['name'] ?? 'مدرس', style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: Colors.white)),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_left_rounded, color: Colors.white),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(c['teacher']['name'] ?? 'مدرس', style: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: Colors.white))),
-                          const Icon(Icons.chevron_left_rounded, color: Colors.white),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    // Price card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text('${c['price'] ?? 0} جنيه', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: color)),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CheckoutPage(
+                                itemId: c['id'].toString(),
+                                itemType: 'course',
+                                itemTitle: c['title'] as String? ?? '',
+                                itemSubject: c['category'] as String? ?? '',
+                                itemPrice: (c['price'] as num?)?.toDouble() ?? 0,
+                                teacherName: teacher?['user']?['name'] as String? ?? teacher?['name'] as String? ?? 'مدرس',
+                                itemColor: color,
+                                itemGradient: gradient,
+                              ))),
+                              icon: const Icon(Icons.shopping_cart_rounded),
+                              label: const Text('اشتري الآن', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 16)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('ضمان استرجاع المال خلال 30 يوم', style: TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.grey[600])),
                         ],
                       ),
                     ),
-                  ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // ═══ CONTENT ═══
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Prerequisites
+                if (prerequisites.isNotEmpty)
+                  _infoCard(isDark, 'المتطلبات', [
+                    ...prerequisites.map((p) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(children: [
+                        Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text(p.toString(), style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))),
+                      ]),
+                    )),
+                  ]),
+                // Curriculum
+                if (lessons.isNotEmpty)
+                  _infoCard(isDark, 'محتوى الكورس', [
+                    ...lessons.asMap().entries.map((entry) {
+                      final lesson = entry.value as Map<String, dynamic>;
+                      final isFree = entry.key < 2;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Icon(isFree ? Icons.play_arrow_rounded : Icons.lock_rounded, size: 20, color: isFree ? ExploreColors.success : Colors.grey),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(lesson['title'] ?? '', style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569)))),
+                            if (isFree)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(color: ExploreColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                                child: const Text('مجاني', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: ExploreColors.success)),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ]),
+                // Teacher profile card
+                if (teacher != null)
+                  _teacherCard(isDark, teacher, color, gradient),
+                // Course stats card
+                _statsCard(isDark, c, color),
+                // Course rating section
+                _ratingSection(isDark, color),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _headerStat(IconData icon, String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 4),
+        Text(text, style: TextStyle(fontSize: 13, fontFamily: 'Cairo', color: color)),
+      ],
+    );
+  }
+
+  Widget _infoCard(bool isDark, String title, List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(gradient: LinearGradient(colors: _getGradient()), borderRadius: BorderRadius.circular(12)),
+                child: Icon(Icons.play_circle_outline_rounded, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+                    Text('${(_course?['stats']?['lessons'] ?? 0)} درس', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _teacherCard(bool isDark, Map<String, dynamic> teacher, Color color, List<Color> gradient) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(gradient: LinearGradient(colors: gradient)),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 36,
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  child: const Icon(Icons.person_rounded, size: 36, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                Text(teacher['user']?['name'] ?? teacher['name'] ?? 'مدرس', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: Colors.white)),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Transform.translate(
-              offset: const Offset(0, -32),
-              child: Column(
-                children: [
-                  Container(
-                    width: double.infinity, padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20)],
-                    ),
-                    child: Column(
-                      children: [
-                        Text('${c['price'] ?? 0} جنيه', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: _getColor())),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.shopping_cart_rounded),
-                            label: const Text('اشتري الآن', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w900, fontSize: 16)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _getColor(),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text('ضمان استرجاع المال خلال 30 يوم', style: TextStyle(fontSize: 12, fontFamily: 'Cairo', color: Colors.grey[600])),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if ((c['prerequisites'] as List?)?.isNotEmpty ?? false)
-                    InfoCard(isDark: isDark, title: 'المتطلبات', children: (c['prerequisites'] as List).map((p) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(children: [
-                        Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: _getColor())),
-                        const SizedBox(width: 12),
-                        Text(p.toString(), style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
-                      ]),
-                    )).toList()),
-                  if ((c['lessons'] as List?)?.isNotEmpty ?? false)
-                    InfoCard(isDark: isDark, title: 'محتوى الكورس', children: [
-                      ...(c['lessons'] as List).asMap().entries.map((entry) {
-                        final i = entry.value;
-                        final isFree = entry.key < 2;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Icon(isFree ? Icons.play_arrow_rounded : Icons.lock_rounded, size: 20, color: isFree ? ExploreColors.success : Colors.grey),
-                              const SizedBox(width: 12),
-                              Expanded(child: Text(i['title'] ?? '', style: TextStyle(fontFamily: 'Cairo', color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569)))),
-                              if (isFree)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(color: ExploreColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                                  child: const Text('مجاني', style: TextStyle(fontSize: 11, fontFamily: 'Cairo', color: ExploreColors.success)),
-                                ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ]),
-                ],
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfilePage(teacherId: teacher['id'].toString()))),
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('الملف الشخصي', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.w700)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: color,
+                  side: BorderSide(color: color),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statsCard(bool isDark, Map<String, dynamic> c, Color color) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('إحصائيات الكورس', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+          const SizedBox(height: 16),
+          _statRow(Icons.trending_up_rounded, 'المستوى', c['level'] ?? '', color, isDark),
+          const SizedBox(height: 8),
+          _statRow(Icons.school_rounded, 'المادة', c['category'] ?? '', color, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _statRow(IconData icon, String label, String value, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 10),
+          Text(label, style: TextStyle(fontSize: 13, fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+          const Spacer(),
+          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+        ],
+      ),
+    );
+  }
+
+  Widget _ratingSection(bool isDark, Color color) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('تقييم الكورس', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Cairo', color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B))),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              ...List.generate(5, (i) => Icon(Icons.star_rounded, size: 28, color: const Color(0xFFFBBF24))),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text('0.0 ⭐ (0 تقييم)', style: TextStyle(fontSize: 13, fontFamily: 'Cairo', color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
         ],
       ),
     );
