@@ -11,6 +11,7 @@ import '../views/lesson_view.dart';
 import '../views/live_class_view.dart';
 import '../views/my_courses_view.dart';
 import '../views/notifications_view.dart';
+import '../views/parents_view.dart';
 import '../views/performance_report_view.dart';
 import '../views/student_contest_dashboard_view.dart';
 import '../views/student_dashboard_view.dart';
@@ -33,6 +34,7 @@ abstract final class StudentRoutes {
   static const submitAssignment = '/student/submit-assignment';
   static const performance = '/student/performance';
   static const profile = '/student/profile';
+  static const parents = '/student/parents';
   static Map<String, WidgetBuilder> get routes => {
     dashboard: (_) => const StudentDashboardView(),
     courses: (_) => const MyCoursesView(),
@@ -46,6 +48,7 @@ abstract final class StudentRoutes {
     submitAssignment: (_) => const SubmitAssignmentView(),
     performance: (_) => const PerformanceReportView(),
     profile: (_) => const StudentProfileView(),
+    parents: (_) => const ParentsView(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

@@ -35,6 +35,8 @@ class StudentDashboardSections extends StatelessWidget {
         SizedBox(height: 16.h),
         _buildBooksSection(context),
         SizedBox(height: 16.h),
+        _buildParentsSection(context),
+        SizedBox(height: 16.h),
         _buildTasksSection(context),
         SizedBox(height: 16.h),
         _buildChartSection(context),
@@ -186,76 +188,11 @@ class StudentDashboardSections extends StatelessWidget {
   }
 
   Widget _buildBooksSection(BuildContext context) {
-    return StudentGlassCard(
-      title: '📖 الكتب الدراسية',
-      icon: '📚',
-      actionLabel: 'عرض الكل',
-      onAction: () => Navigator.pushNamed(context, StudentRoutes.books),
-      child: Column(
-        children: StudentMockData.books.take(4).map((StudyBook book) {
-          return InkWell(
-            onTap: () => StudentRoutes.pushBook(context, book.id),
-            child: Container(
-              margin: EdgeInsets.only(bottom: 8.h),
-              decoration: BoxDecoration(
-                border: Border.all(color: context.borderColor),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12.r),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: book.gradient),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.auto_stories, color: Colors.white),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(book.title,
-                                  style: TextStyles.semiBold14.copyWith(color: Colors.white)),
-                              Text(book.subtitle,
-                                  style: TextStyles.regular13.copyWith(color: Colors.white70)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(12.r),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(book.teacher,
-                            style: TextStyles.regular13.copyWith(color: context.textPrimary)),
-                        Row(
-                          children: [
-                            Chip(
-                                label: Text('${book.chapters} فصل'),
-                                visualDensity: VisualDensity.compact),
-                            SizedBox(width: 4.w),
-                            Chip(
-                                label: Text('${book.pages} صفحة'),
-                                visualDensity: VisualDensity.compact),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
+    return const _BooksSection();
+  }
+
+  Widget _buildParentsSection(BuildContext context) {
+    return const _ParentsSection();
   }
 
   Widget _buildTasksSection(BuildContext context) {
@@ -627,6 +564,287 @@ class _ContestCardState extends State<_ContestCard> {
           children: [
             Text(value, style: TextStyles.bold18.copyWith(color: Colors.white)),
             Text(label, style: TextStyles.regular13.copyWith(color: Colors.white70)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BooksSection extends StatefulWidget {
+  const _BooksSection();
+
+  @override
+  State<_BooksSection> createState() => _BooksSectionState();
+}
+
+class _BooksSectionState extends State<_BooksSection> {
+  List<StudyBook>? _books;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final books = await context.read<StudentRepository>().getBooks();
+      if (mounted) setState(() { _books = books; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StudentGlassCard(
+      title: '📖 الكتب الدراسية',
+      icon: '📚',
+      actionLabel: 'عرض الكل',
+      onAction: () => Navigator.pushNamed(context, StudentRoutes.books),
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _books == null || _books!.isEmpty
+              ? Center(
+                  child: Text('لا توجد كتب متاحة',
+                      style: TextStyles.regular14.copyWith(color: context.textSecondary)))
+              : _buildGrid(context),
+    );
+  }
+
+  Widget _buildGrid(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _books!.length > 4 ? 4 : _books!.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8.w,
+        mainAxisSpacing: 8.h,
+        childAspectRatio: 0.85,
+      ),
+      itemBuilder: (_, i) => _buildBookCard(context, _books![i]),
+    );
+  }
+
+  Widget _buildBookCard(BuildContext context, StudyBook book) {
+    return InkWell(
+      onTap: () => StudentRoutes.pushBook(context, book.id),
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: context.borderColor),
+          borderRadius: BorderRadius.circular(8.r),
+          color: context.cardColor,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              height: 72.h,
+              decoration: BoxDecoration(gradient: LinearGradient(colors: book.gradient)),
+              child: Center(
+                child: Container(
+                  width: 36.w,
+                  height: 36.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: const Icon(Icons.auto_stories, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(8.r),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(book.title,
+                        style: TextStyles.semiBold13.copyWith(color: context.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    SizedBox(height: 2.h),
+                    Text(book.subtitle,
+                        style: TextStyles.regular13.copyWith(color: context.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    SizedBox(height: 4.h),
+                    Row(
+                      children: [
+                        Icon(Icons.school, size: 12.sp, color: book.color),
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Text(book.teacherName,
+                              style: TextStyles.regular13.copyWith(color: context.textSecondary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Parents Section ─────────────────────────────────────────────────────
+
+class _ParentsSection extends StatefulWidget {
+  const _ParentsSection();
+
+  @override
+  State<_ParentsSection> createState() => _ParentsSectionState();
+}
+
+class _ParentsSectionState extends State<_ParentsSection> {
+  List<StudentParentItem>? _parents;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchParents();
+  }
+
+  Future<void> _fetchParents() async {
+    try {
+      final repo = context.read<StudentRepository>();
+      final parents = await repo.getParents();
+      if (mounted) setState(() => _parents = parents);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StudentGlassCard(
+      title: '👨‍👩‍👧 أولياء الأمور',
+      icon: '👨‍👩‍👧',
+      actionLabel: 'إدارة أولياء الأمور',
+      onAction: () => Navigator.pushNamed(context, StudentRoutes.parents),
+      child: _loading
+          ? const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)))
+          : _error != null || _parents == null || _parents!.isEmpty
+              ? _buildEmptyState(context)
+              : _buildParentsList(context),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final pinkGradient = const LinearGradient(
+      colors: [Color(0xFFFF6B9D), Color(0xFFFF4D6D)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, StudentRoutes.parents),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: pinkGradient,
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          children: [
+            Icon(Icons.family_restroom_rounded, size: 48.sp, color: Colors.white),
+            SizedBox(height: 8.h),
+            Text(
+              'ربط ولي أمر',
+              style: TextStyles.bold18.copyWith(color: Colors.white),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'لم تقم بربط أي ولي أمر بعد، قم بربط ولي أمر الآن لمتابعة تقدمك',
+              style: TextStyles.regular13.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParentsList(BuildContext context) {
+    return Column(
+      children: [
+        ..._parents!.map((parent) => _buildParentCard(context, parent)),
+      ],
+    );
+  }
+
+  Widget _buildParentCard(BuildContext context, StudentParentItem parent) {
+    final initial = parent.name.isNotEmpty ? parent.name[0] : '?';
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, StudentRoutes.parents),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        padding: EdgeInsets.all(14.w),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22.r,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              child: Text(
+                initial,
+                style: TextStyles.semiBold16.copyWith(color: Colors.white),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(parent.name, style: TextStyles.medium15.copyWith(color: Colors.white)),
+                  SizedBox(height: 2.h),
+                  Text(parent.email, style: TextStyles.regular13.copyWith(color: Colors.white.withValues(alpha: 0.85))),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: parent.isActivated
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : Colors.orange.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    parent.isActivated ? Icons.check_circle : Icons.warning_amber_rounded,
+                    size: 14.sp,
+                    color: parent.isActivated ? Colors.green : Colors.orange,
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    parent.isActivated ? 'مفعل' : 'غير مفعل',
+                    style: TextStyles.regular13.copyWith(
+                      color: parent.isActivated ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

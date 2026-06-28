@@ -481,40 +481,72 @@ class StudyBook {
   const StudyBook({
     required this.id,
     required this.title,
-    required this.subtitle,
+    this.subtitle = '',
     required this.subject,
-    required this.teacher,
-    required this.chapters,
-    required this.pages,
-    required this.color,
-    required this.gradient,
-    this.isFavorite = false,
+    this.teacherName = '',
+    this.grade = '',
     this.description = '',
-    this.teacherId = '1',
-    this.teacherBio = '',
-    this.rating = 4.8,
-    this.reviewsCount = 120,
-    this.downloadSize = '15 MB',
-    this.lastUpdated = '2025',
+    this.price = 0,
+    this.bookType = 'pdf',
+    this.pdfFileRef,
+    this.coverImage,
+    this.teacherId = '',
+    this.teacherAvatar,
+    this.isPublished = true,
+    this.hasPurchased = false,
+    this.purchases = 0,
+    this.rating = 0,
+    this.reviewsCount = 0,
+    this.chapters = 0,
+    this.pages = 0,
+    this.isFavorite = false,
+    this.color = const Color(0xFF7C3AED),
+    this.gradient = const [Color(0xFF7C3AED), Color(0xFF6D28D9)],
   });
 
   final String id;
   final String title;
   final String subtitle;
   final String subject;
-  final String teacher;
-  final int chapters;
-  final int pages;
-  final Color color;
-  final List<Color> gradient;
-  final bool isFavorite;
+  final String teacherName;
+  final String grade;
   final String description;
+  final int price;
+  final String bookType;
+  final String? pdfFileRef;
+  final String? coverImage;
   final String teacherId;
-  final String teacherBio;
+  final String? teacherAvatar;
+  final bool isPublished;
+  final bool hasPurchased;
+  final int purchases;
   final double rating;
   final int reviewsCount;
-  final String downloadSize;
-  final String lastUpdated;
+  final int chapters;
+  final int pages;
+  final bool isFavorite;
+  final Color color;
+  final List<Color> gradient;
+
+  String get teacher => teacherName;
+}
+
+class StudentParentItem {
+  const StudentParentItem({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.isActivated = false,
+    this.username,
+    this.linkedAt,
+  });
+
+  final String id;
+  final String name;
+  final String email;
+  final bool isActivated;
+  final String? username;
+  final DateTime? linkedAt;
 }
 
 class BookChapter {
@@ -531,6 +563,34 @@ class BookChapter {
   final String description;
   final int lessonsCount;
   final int pagesCount;
+}
+
+class BookReview {
+  const BookReview({
+    required this.id,
+    required this.studentName,
+    required this.rating,
+    this.comment = '',
+  });
+
+  final String id;
+  final String studentName;
+  final double rating;
+  final String comment;
+}
+
+class BookRatingData {
+  const BookRatingData({
+    this.averageRating = 0,
+    this.totalRatings = 0,
+    this.myRating = 0,
+    this.reviews = const [],
+  });
+
+  final double averageRating;
+  final int totalRatings;
+  final int myRating;
+  final List<BookReview> reviews;
 }
 
 class ContestItem {

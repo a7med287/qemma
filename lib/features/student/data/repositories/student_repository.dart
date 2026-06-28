@@ -205,6 +205,29 @@ class StudentRepository {
         await _dio.post('/students/rate/lesson/$lessonId', data: {'rating': rating});
       }, 'فشل حفظ التقييم');
 
+  // ── Book Rating ───────────────────────────────────────────────────
+
+  Future<BookRatingData> getBookRating(String bookId) => _guard(() async {
+        final res = await _dio.get('/students/rate/book/$bookId');
+        return StudentModelJson.bookRatingFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل تحميل تقييم الكتاب');
+
+  Future<void> rateBook(String bookId, {required int rating, String comment = ''}) =>
+      _guard(() async {
+        await _dio.post('/students/rate/book/$bookId', data: {
+          'rating': rating,
+          if (comment.isNotEmpty) 'comment': comment,
+        });
+      }, 'فشل حفظ تقييم الكتاب');
+
+  // ── Parents ──────────────────────────────────────────────────────
+
+  Future<List<StudentParentItem>> getParents() => _guard(() async {
+        final res = await _dio.get('/students/parents');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(StudentModelJson.studentParentFromJson).toList();
+      }, 'فشل تحميل أولياء الأمور');
+
   // ── Contests ──────────────────────────────────────────────────────
 
   Future<List<ContestItem>> getAvailableContests() => _guard(() async {

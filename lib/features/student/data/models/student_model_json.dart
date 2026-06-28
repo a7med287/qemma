@@ -431,31 +431,100 @@ abstract final class StudentModelJson {
     );
   }
 
+  static const Map<String, List<Color>> subjectGradients = {
+    'الرياضيات': [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    'الفيزياء': [Color(0xFF059669), Color(0xFF047857)],
+    'الكيمياء': [Color(0xFFDB2777), Color(0xFFBE185D)],
+    'اللغة العربية': [Color(0xFFF59E0B), Color(0xFFD97706)],
+    'اللغة الإنجليزية': [Color(0xFF0891B2), Color(0xFF0E7490)],
+    'الأحياء': [Color(0xFF059669), Color(0xFF047857)],
+    'الجيولوجيا': [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    'التاريخ': [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+    'الجغرافيا': [Color(0xFF059669), Color(0xFF047857)],
+    'الفلسفة والمنطق': [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    'علم النفس والاجتماع': [Color(0xFF0891B2), Color(0xFF0E7490)],
+    'العربية': [Color(0xFFF59E0B), Color(0xFFD97706)],
+  };
+
+  static const Map<String, Color> subjectColors = {
+    'الرياضيات': Color(0xFF2563EB),
+    'الفيزياء': Color(0xFF059669),
+    'الكيمياء': Color(0xFFDB2777),
+    'اللغة العربية': Color(0xFFF59E0B),
+    'اللغة الإنجليزية': Color(0xFF0891B2),
+    'الأحياء': Color(0xFF059669),
+    'الجيولوجيا': Color(0xFF2563EB),
+    'التاريخ': Color(0xFF7C3AED),
+    'الجغرافيا': Color(0xFF059669),
+    'الفلسفة والمنطق': Color(0xFF2563EB),
+    'علم النفس والاجتماع': Color(0xFF0891B2),
+    'العربية': Color(0xFFF59E0B),
+  };
+
+  static Color bookColor(String subject) =>
+      subjectColors[subject] ?? const Color(0xFF7C3AED);
+
+  static List<Color> bookGradient(String subject) =>
+      subjectGradients[subject] ?? const [Color(0xFF7C3AED), Color(0xFF6D28D9)];
+
   static StudyBook bookFromJson(Map<String, dynamic> json, {int index = 0}) {
-    const palette = [
-      Color(0xFF2563EB),
-      Color(0xFF059669),
-      Color(0xFFDB2777),
-      Color(0xFFF59E0B),
-      Color(0xFF7C3AED),
-    ];
-    final color = palette[index % palette.length];
+    final subject = json['subject']?.toString() ?? '';
+    final color = bookColor(subject);
     return StudyBook(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
-      subtitle: json['subject']?.toString() ?? json['grade']?.toString() ?? '',
-      subject: json['subject']?.toString() ?? '',
-      teacher: json['teacherName']?.toString() ?? '',
-      chapters: _toInt(json['chapters'], fallback: 0),
-      pages: _toInt(json['pages'], fallback: 0),
-      color: color,
-      gradient: [color, color.withValues(alpha: .8)],
+      subtitle: json['grade']?.toString() ?? '',
+      subject: subject,
+      teacherName: json['teacherName']?.toString() ?? '',
+      grade: json['grade']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
+      price: _toInt(json['price']),
+      bookType: json['bookType']?.toString() ?? 'pdf',
+      pdfFileRef: json['pdfFileRef']?.toString(),
+      coverImage: json['coverImage']?.toString(),
       teacherId: json['teacherId']?.toString() ?? '',
-      rating: _toDouble(json['rating'], fallback: 4.5),
-      reviewsCount: _toInt(json['reviewsCount'] ?? json['purchases']),
-      downloadSize: json['downloadSize']?.toString() ?? '',
-      lastUpdated: json['updatedAt']?.toString() ?? '',
+      teacherAvatar: json['teacherAvatar']?.toString(),
+      isPublished: json['isPublished'] != false,
+      hasPurchased: json['hasPurchased'] == true,
+      purchases: _toInt(json['purchases']),
+      rating: _toDouble(json['rating']),
+      reviewsCount: _toInt(json['reviewsCount']),
+      chapters: _toInt(json['chapters']),
+      pages: _toInt(json['pages']),
+      color: color,
+      gradient: bookGradient(subject),
+    );
+  }
+
+  static BookRatingData bookRatingFromJson(Map<String, dynamic> json) {
+    final data = asMap(json['data']);
+    final myRating = asMap(data['myRating']);
+    return BookRatingData(
+      averageRating: _toDouble(data['averageRating']),
+      totalRatings: _toInt(data['totalRatings']),
+      myRating: _toInt(myRating['rating']),
+      reviews: asMapList(data['reviews']).map(bookReviewFromJson).toList(),
+    );
+  }
+
+  static BookReview bookReviewFromJson(Map<String, dynamic> json) {
+    final student = asMap(json['student']);
+    return BookReview(
+      id: json['id']?.toString() ?? '',
+      studentName: student['name']?.toString() ?? 'طالب',
+      rating: _toDouble(json['rating']),
+      comment: json['comment']?.toString() ?? '',
+    );
+  }
+
+  static StudentParentItem studentParentFromJson(Map<String, dynamic> json) {
+    return StudentParentItem(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      isActivated: json['isActivated'] == true,
+      username: json['username']?.toString(),
+      linkedAt: DateTime.tryParse(json['linkedAt']?.toString() ?? ''),
     );
   }
 
