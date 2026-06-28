@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/helpers/build_snack_bar.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../data/models/student_models.dart';
+import '../../data/models/student_model_json.dart';
 import '../../data/repositories/student_repository.dart';
 
 class StudentChatView extends StatefulWidget {
@@ -58,15 +59,7 @@ class _StudentChatViewState extends State<StudentChatView> {
     final map = data as Map<String, dynamic>;
     final sessionId = map['sessionId']?.toString();
     if (sessionId != null && sessionId == _chatSession?.id) {
-      final msg = ChatMessage(
-        id: map['id']?.toString() ?? '',
-        sessionId: sessionId,
-        senderUserId: map['senderUserId']?.toString() ?? '',
-        senderName: map['senderName']?.toString(),
-        senderRole: map['senderRole']?.toString(),
-        message: map['message']?.toString() ?? '',
-        sentAt: map['sentAt'] != null ? DateTime.tryParse(map['sentAt'].toString()) : null,
-      );
+      final msg = StudentModelJson.chatMessageFromJson(map);
       if (!_chatMessages.any((m) => m.id == msg.id)) {
         setState(() => _chatMessages.add(msg));
         Future.delayed(const Duration(milliseconds: 100), () {
