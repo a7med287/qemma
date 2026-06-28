@@ -157,65 +157,65 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                 child: rating.isEmpty
                     ? Center(child: Text('لا توجد بيانات كافية', style: TextStyles.regular14))
                     : LineChart(
-                        LineChartData(
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: List.generate(rating.length,
-                                  (i) => FlSpot(i.toDouble(), rating[i].rating.toDouble())),
-                              color: ratingInfo.color,
-                              isCurved: true,
-                              belowBarData: BarAreaData(
-                                  show: true, color: ratingInfo.color.withValues(alpha: .1)),
-                            ),
-                          ],
-                          titlesData: FlTitlesData(
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 28.h,
-                                getTitlesWidget: (v, _) {
-                                  final i = v.toInt();
-                                  if (i < 0 || i >= rating.length) return const SizedBox.shrink();
-                                  return Padding(
-                                    padding: EdgeInsets.only(top: 8.h),
-                                    child: Text(
-                                      rating[i].contestName.length > 6
-                                          ? '${rating[i].contestName.substring(0, 6)}..'
-                                          : rating[i].contestName,
-                                      style: TextStyle(fontSize: 8.sp, color: context.textSecondary),
-                                    ),
-                                  );
-                                },
+                  LineChartData(
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: List.generate(rating.length,
+                                (i) => FlSpot(i.toDouble(), rating[i].rating.toDouble())),
+                        color: ratingInfo.color,
+                        isCurved: true,
+                        belowBarData: BarAreaData(
+                            show: true, color: ratingInfo.color.withValues(alpha: .1)),
+                      ),
+                    ],
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28.h,
+                          getTitlesWidget: (v, _) {
+                            final i = v.toInt();
+                            if (i < 0 || i >= rating.length) return const SizedBox.shrink();
+                            return Padding(
+                              padding: EdgeInsets.only(top: 8.h),
+                              child: Text(
+                                rating[i].contestName.length > 6
+                                    ? '${rating[i].contestName.substring(0, 6)}..'
+                                    : rating[i].contestName,
+                                style: TextStyle(fontSize: 8.sp, color: context.textSecondary),
                               ),
-                            ),
-                            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28)),
-                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          ),
-                          gridData: FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                            getDrawingHorizontalLine: (v) => FlLine(
-                              color: context.borderColor,
-                              strokeWidth: 0.5,
-                            ),
-                          ),
-                          lineTouchData: LineTouchData(
-                            touchTooltipData: LineTouchTooltipData(
-                              getTooltipItems: (touchedSpots) {
-                                return touchedSpots.map((spot) {
-                                  final i = spot.spotIndex;
-                                  final name = i < rating.length ? rating[i].contestName : '';
-                                  return LineTooltipItem(
-                                    '$name\nالتقييم: ${spot.y.toInt()}',
-                                    TextStyle(color: ratingInfo.color, fontWeight: FontWeight.bold, fontSize: 12.sp, fontFamily: 'Cairo'),
-                                  );
-                                }).toList();
-                              },
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (v) => FlLine(
+                        color: context.borderColor,
+                        strokeWidth: 0.5,
+                      ),
+                    ),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            final i = spot.spotIndex;
+                            final name = i < rating.length ? rating[i].contestName : '';
+                            return LineTooltipItem(
+                              '$name\nالتقييم: ${spot.y.toInt()}',
+                              TextStyle(color: ratingInfo.color, fontWeight: FontWeight.bold, fontSize: 12.sp, fontFamily: 'Cairo'),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 16.h),
@@ -248,13 +248,20 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                         child: Row(
                           children: [
                             Expanded(
-                              flex: 3,
+                              flex: 4,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(h.contestName, style: TextStyles.semiBold14.copyWith(color: context.textPrimary)),
+                                  Text(
+                                    h.contestName,
+                                    style: TextStyles.semiBold14.copyWith(color: context.textPrimary),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
                                   SizedBox(height: 4.h),
-                                  Row(
+                                  Wrap(
+                                    spacing: 4.w,
+                                    runSpacing: 2.h,
                                     children: [
                                       Chip(
                                         label: Text(_difficultyLabel(h.difficulty)),
@@ -262,14 +269,15 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                                         labelStyle: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.bold),
                                         visualDensity: VisualDensity.compact,
                                         padding: EdgeInsets.zero,
+                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      SizedBox(width: 4.w),
                                       Chip(
                                         label: Text(h.date),
                                         backgroundColor: context.isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                         labelStyle: TextStyle(fontSize: 9.sp),
                                         visualDensity: VisualDensity.compact,
                                         padding: EdgeInsets.zero,
+                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
                                     ],
                                   ),
@@ -277,18 +285,22 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                               ),
                             ),
                             Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(h.rank != null ? '#${h.rank}' : '—',
                                       style: TextStyles.semiBold14.copyWith(color: Colors.amber)),
-                                  Text('من ${h.totalParticipants}', style: TextStyle(fontSize: 9.sp, color: context.textSecondary)),
+                                  Text(
+                                    'من ${h.totalParticipants}',
+                                    style: TextStyle(fontSize: 9.sp, color: context.textSecondary),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                             ),
                             Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
@@ -299,36 +311,43 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
                               ),
                             ),
                             Expanded(
-                              flex: 1,
-                              child: Text('${h.solvedProblems}/${h.totalProblems}',
-                                  style: TextStyles.regular13.copyWith(color: context.textPrimary)),
+                              flex: 2,
+                              child: Text(
+                                '${h.solvedProblems}/${h.totalProblems}',
+                                style: TextStyles.regular13.copyWith(color: context.textPrimary),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                             Expanded(
-                              flex: 1,
+                              flex: 2,
                               child: h.ratingChange != null
                                   ? Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          (h.ratingChange ?? 0) > 0 ? Icons.trending_up : Icons.trending_down,
-                                          size: 16,
-                                          color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
-                                        ),
-                                        SizedBox(width: 2.w),
-                                        Text(
-                                          '${(h.ratingChange ?? 0) > 0 ? '+' : ''}${h.ratingChange}',
-                                          style: TextStyle(
-                                            fontFamily: 'Cairo',
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.bold,
-                                            color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Text('—', style: TextStyle(color: context.textSecondary)),
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    (h.ratingChange ?? 0) > 0 ? Icons.trending_up : Icons.trending_down,
+                                    size: 14,
+                                    color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  Flexible(
+                                    child: Text(
+                                      '${(h.ratingChange ?? 0) > 0 ? '+' : ''}${h.ratingChange}',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: 11.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: (h.ratingChange ?? 0) > 0 ? Colors.green : Colors.red,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              )
+                                  : Center(child: Text('—', style: TextStyle(color: context.textSecondary))),
                             ),
-                            Icon(Icons.arrow_back_ios_new, size: 14, color: context.textSecondary),
+                            Icon(Icons.arrow_back_ios_new, size: 12, color: context.textSecondary),
                           ],
                         ),
                       ),
@@ -343,10 +362,10 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
   }
 
   Color _difficultyColor(String d) => switch (d) {
-        'easy' => Colors.green,
-        'hard' => Colors.red,
-        _ => Colors.orange,
-      };
+    'easy' => Colors.green,
+    'hard' => Colors.red,
+    _ => Colors.orange,
+  };
 
   Widget _statCard(String value, String label) {
     return Container(
@@ -454,8 +473,8 @@ class _StudentContestDashboardViewState extends State<StudentContestDashboardVie
   }
 
   String _difficultyLabel(String d) => switch (d) {
-        'easy' => 'سهل',
-        'hard' => 'صعب',
-        _ => 'متوسط',
-      };
+    'easy' => 'سهل',
+    'hard' => 'صعب',
+    _ => 'متوسط',
+  };
 }

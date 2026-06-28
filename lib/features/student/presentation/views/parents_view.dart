@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../features/explore/presentation/views/checkout_page.dart';
 import '../../data/models/student_models.dart';
 import '../../data/repositories/student_repository.dart';
 import '../widgets/student_shared_widgets.dart';
@@ -341,7 +342,21 @@ class _ParentsViewState extends State<ParentsView> {
   }
 
   void _handleActivate(StudentParentItem parent) {
-    // TODO: Navigate to checkout page
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutPage(
+          itemId: parent.id,
+          itemType: 'parent_activation',
+          itemTitle: 'تفعيل ولي الأمر: ${parent.name}',
+          itemPrice: 500,
+          itemColor: const Color(0xFFDB2777),
+          itemGradient: const [Color(0xFFDB2777), Color(0xFFBE185D), Color(0xFF9D174D)],
+        ),
+      ),
+    ).then((_) {
+      if (mounted) _load();
+    });
   }
 
   Widget _buildInfoCard() {

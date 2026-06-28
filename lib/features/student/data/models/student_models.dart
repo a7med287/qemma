@@ -167,6 +167,7 @@ class StudentNotification {
     required this.time,
     this.unread = true,
     this.type = 'general',
+    this.createdAt,
   });
 
   final String id;
@@ -175,6 +176,7 @@ class StudentNotification {
   final String time;
   final bool unread;
   final String type;
+  final DateTime? createdAt;
 }
 
 class PerformanceItem {
@@ -937,4 +939,28 @@ class ChatMessage {
   final String? senderRole;
   final String message;
   final DateTime? sentAt;
+}
+
+class AiAnalysis {
+  const AiAnalysis({
+    this.overallAssessment,
+    this.strengths = const [],
+    this.weaknesses = const [],
+    this.weakLessons = const [],
+    this.topicsToStudy = const [],
+    this.advice,
+    this.improvements = const [],
+    this.studyPlan,
+    this.motivationalMessage,
+  });
+
+  final String? overallAssessment;
+  final List<String> strengths;
+  final List<String> weaknesses;
+  final List<String> weakLessons;
+  final List<String> topicsToStudy;
+  final String? advice;
+  final List<String> improvements;
+  final String? studyPlan;
+  final String? motivationalMessage;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/helpers/build_context_extensions.dart';
+import '../../../../../core/services/socket_service.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_text_styles.dart';
 import '../../../data/models/student_models.dart';
@@ -87,14 +88,21 @@ class StudentDashboardHeader extends StatelessWidget {
                 style: IconButton.styleFrom(backgroundColor: Colors.white12),
               ),
               SizedBox(width: 8.w),
-              IconButton(
-                onPressed: onNotificationTap ?? () {},
-                icon: Badge(
-                  label: Text('${data.notifications.where((n) => n.unread).length}'),
-                  isLabelVisible: data.notifications.any((n) => n.unread),
-                  child: const Icon(Icons.notifications, color: Colors.white),
-                ),
-                style: IconButton.styleFrom(backgroundColor: Colors.white12),
+              ValueListenableBuilder<int>(
+                valueListenable: SocketService().unreadCountNotifier,
+                builder: (context, count, _) {
+                  final initialUnread = data.notifications.where((n) => n.unread).length;
+                  final badgeCount = count > 0 ? count : initialUnread;
+                  return IconButton(
+                    onPressed: onNotificationTap ?? () {},
+                    icon: Badge(
+                      label: Text('$badgeCount'),
+                      isLabelVisible: badgeCount > 0,
+                      child: const Icon(Icons.notifications, color: Colors.white),
+                    ),
+                    style: IconButton.styleFrom(backgroundColor: Colors.white12),
+                  );
+                },
               ),
             ],
           ),

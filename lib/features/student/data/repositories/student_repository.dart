@@ -28,6 +28,11 @@ class StudentRepository {
         return StudentModelJson.performanceFromJson(asMap(unwrapBody(res.data)));
       }, 'فشل تحميل تقرير الأداء');
 
+  Future<AiAnalysis> analyzePerformance() => _guard(() async {
+        final res = await _dio.post('/students/performance/analyze');
+        return StudentModelJson.aiAnalysisFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل تحليل الأداء');
+
   Future<TasksResponse> getTasks() => _guard(() async {
         final res = await _dio.get('/students/tasks');
         return StudentModelJson.tasksResponseFromJson(asMap(unwrapBody(res.data)));
@@ -117,6 +122,10 @@ class StudentRepository {
 
   Future<void> deleteNotification(String id) => _guard(() async {
         await _dio.delete('/notifications/$id');
+      });
+
+  Future<void> deleteAllNotifications() => _guard(() async {
+        await _dio.delete('/notifications');
       });
 
   Future<LiveRoomInfo> joinLiveByCode(String code) => _guard(() async {

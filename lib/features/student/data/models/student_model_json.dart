@@ -114,6 +114,7 @@ abstract final class StudentModelJson {
       time: json['time']?.toString() ?? _formatDate(json['createdAt']),
       unread: json['unread'] == true || json['isRead'] == false,
       type: json['type']?.toString() ?? 'general',
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
     );
   }
 
@@ -418,6 +419,20 @@ abstract final class StudentModelJson {
     );
   }
 
+  static AiAnalysis aiAnalysisFromJson(Map<String, dynamic> json) {
+    return AiAnalysis(
+      overallAssessment: json['overallAssessment']?.toString(),
+      strengths: _toStringList(json['strengths']),
+      weaknesses: _toStringList(json['weaknesses']),
+      weakLessons: _toStringList(json['weakLessons']),
+      topicsToStudy: _toStringList(json['topicsToStudy']),
+      advice: json['advice']?.toString(),
+      improvements: _toStringList(json['improvements']),
+      studyPlan: json['studyPlan']?.toString(),
+      motivationalMessage: json['motivationalMessage']?.toString(),
+    );
+  }
+
   static SubjectPerformance subjectPerformanceFromJson(Map<String, dynamic> json) {
     final colorHex = json['color']?.toString();
     return SubjectPerformance(
@@ -547,7 +562,7 @@ abstract final class StudentModelJson {
       title: json['title']?.toString() ?? '',
       courseTitle: course['title']?.toString() ?? json['courseTitle']?.toString() ?? '',
       teacherName: json['teacherName']?.toString() ?? hostUser['name']?.toString() ?? '',
-      isActive: json['isActive'] == true,
+      isActive: json['isActive'] == true || json['status']?.toString() == 'live',
       participants: _toInt(count['participants'] ?? json['participantCount']),
       roomCode: json['roomCode']?.toString() ?? '',
     );
