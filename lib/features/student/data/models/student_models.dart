@@ -123,6 +123,11 @@ class LiveSession {
     this.isLive = false,
     this.participants = 0,
     this.roomName = '',
+    this.status = 'scheduled',
+    this.roomCode,
+    this.maxCapacity,
+    this.description,
+    this.scheduledAt,
   });
 
   final String id;
@@ -133,6 +138,11 @@ class LiveSession {
   final bool isLive;
   final int participants;
   final String roomName;
+  final String status;
+  final String? roomCode;
+  final int? maxCapacity;
+  final String? description;
+  final DateTime? scheduledAt;
 }
 
 class RecentExam {
@@ -244,6 +254,8 @@ class CourseLesson {
     this.attended = false,
     this.videoUrl,
     this.hasPdf = false,
+    this.pdfFileRef,
+    this.content,
   });
 
   final String id;
@@ -253,6 +265,8 @@ class CourseLesson {
   final bool attended;
   final String? videoUrl;
   final bool hasPdf;
+  final String? pdfFileRef;
+  final String? content;
 }
 
 class CourseExam {
@@ -285,6 +299,44 @@ class CourseExam {
   final double? attemptScore;
 }
 
+class CourseStats {
+  const CourseStats({
+    this.totalLessons = 0,
+    this.totalExams = 0,
+    this.totalStudents = 0,
+    this.attendedCount = 0,
+  });
+
+  final int totalLessons;
+  final int totalExams;
+  final int totalStudents;
+  final int attendedCount;
+}
+
+class UpcomingSession {
+  const UpcomingSession({
+    required this.id,
+    required this.title,
+    this.description,
+    this.date,
+    this.startTime,
+    this.endTime,
+    this.type = 'online',
+    this.meetingLink,
+    this.maxStudents,
+  });
+
+  final String id;
+  final String title;
+  final String? description;
+  final DateTime? date;
+  final String? startTime;
+  final String? endTime;
+  final String type;
+  final String? meetingLink;
+  final int? maxStudents;
+}
+
 class CourseDetail {
   const CourseDetail({
     required this.id,
@@ -298,6 +350,12 @@ class CourseDetail {
     this.level = '',
     this.thumbnail,
     this.teacherAvatar,
+    this.description,
+    this.teacherEmail,
+    this.teacherUserId,
+    this.teacherVerified = false,
+    this.stats,
+    this.upcomingSessions,
   });
 
   final String id;
@@ -311,6 +369,52 @@ class CourseDetail {
   final String level;
   final String? thumbnail;
   final String? teacherAvatar;
+  final String? description;
+  final String? teacherEmail;
+  final String? teacherUserId;
+  final bool teacherVerified;
+  final CourseStats? stats;
+  final List<UpcomingSession>? upcomingSessions;
+
+  CourseDetail copyWith({
+    String? id,
+    String? title,
+    String? teacherName,
+    int? progress,
+    String? category,
+    String? level,
+    String? thumbnail,
+    String? teacherAvatar,
+    String? description,
+    String? teacherEmail,
+    String? teacherUserId,
+    bool? teacherVerified,
+    CourseStats? stats,
+    List<CourseLesson>? lessons,
+    List<CourseExam>? exams,
+    List<LiveSession>? liveSessions,
+    List<UpcomingSession>? upcomingSessions,
+  }) {
+    return CourseDetail(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      teacherName: teacherName ?? this.teacherName,
+      progress: progress ?? this.progress,
+      category: category ?? this.category,
+      level: level ?? this.level,
+      thumbnail: thumbnail ?? this.thumbnail,
+      teacherAvatar: teacherAvatar ?? this.teacherAvatar,
+      description: description ?? this.description,
+      teacherEmail: teacherEmail ?? this.teacherEmail,
+      teacherUserId: teacherUserId ?? this.teacherUserId,
+      teacherVerified: teacherVerified ?? this.teacherVerified,
+      stats: stats ?? this.stats,
+      lessons: lessons ?? this.lessons,
+      exams: exams ?? this.exams,
+      liveSessions: liveSessions ?? this.liveSessions,
+      upcomingSessions: upcomingSessions ?? this.upcomingSessions,
+    );
+  }
 }
 
 class EnrollmentItem {
@@ -731,4 +835,46 @@ class PreviousQuestion {
   final String? answer;
   final String date;
   final bool answered;
+}
+
+class ChatSession {
+  const ChatSession({
+    required this.id,
+    this.courseId,
+    this.teacherUserId,
+    this.studentUserId,
+    this.sessionType = 'teacher_support',
+    this.status = 'active',
+    this.teacherName,
+    this.teacherAvatar,
+  });
+
+  final String id;
+  final String? courseId;
+  final String? teacherUserId;
+  final String? studentUserId;
+  final String sessionType;
+  final String status;
+  final String? teacherName;
+  final String? teacherAvatar;
+}
+
+class ChatMessage {
+  const ChatMessage({
+    required this.id,
+    required this.sessionId,
+    required this.senderUserId,
+    this.senderName,
+    this.senderRole,
+    required this.message,
+    this.sentAt,
+  });
+
+  final String id;
+  final String sessionId;
+  final String senderUserId;
+  final String? senderName;
+  final String? senderRole;
+  final String message;
+  final DateTime? sentAt;
 }

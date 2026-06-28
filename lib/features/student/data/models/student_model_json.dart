@@ -197,19 +197,49 @@ abstract final class StudentModelJson {
     final course = asMap(json['course']);
     final enrollment = asMap(json['enrollment']);
     final teacher = asMap(course['teacher']);
+    final stats = course['stats'] != null ? asMap(course['stats']) : null;
 
     return CourseDetail(
       id: course['id']?.toString() ?? '',
       title: course['title']?.toString() ?? '',
-      teacherName: teacher['name']?.toString() ?? '',
+      teacherName: teacher['name']?.toString() ?? course['teacherName']?.toString() ?? '',
       progress: _toInt(enrollment['progress']),
       category: course['category']?.toString() ?? '',
       level: course['level']?.toString() ?? '',
       thumbnail: course['thumbnail']?.toString(),
       teacherAvatar: teacher['avatar']?.toString(),
+      description: course['description']?.toString(),
+      teacherEmail: teacher['email']?.toString(),
+      teacherUserId: teacher['userId']?.toString(),
+      teacherVerified: teacher['verified'] == true,
+      stats: stats != null ? courseStatsFromJson(stats) : null,
       lessons: asMapList(course['lessons']).map(courseLessonFromJson).toList(),
       exams: asMapList(course['exams']).map(courseExamFromJson).toList(),
       liveSessions: asMapList(course['liveRooms']).map(liveRoomFromJson).toList(),
+      upcomingSessions: asMapList(course['upcomingSessions']).map(upcomingSessionFromJson).toList(),
+    );
+  }
+
+  static CourseStats courseStatsFromJson(Map<String, dynamic> json) {
+    return CourseStats(
+      totalLessons: _toInt(json['totalLessons']),
+      totalExams: _toInt(json['totalExams']),
+      totalStudents: _toInt(json['totalStudents']),
+      attendedCount: _toInt(json['attendedCount']),
+    );
+  }
+
+  static UpcomingSession upcomingSessionFromJson(Map<String, dynamic> json) {
+    return UpcomingSession(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString(),
+      date: DateTime.tryParse(json['date']?.toString() ?? ''),
+      startTime: json['startTime']?.toString(),
+      endTime: json['endTime']?.toString(),
+      type: json['type']?.toString() ?? 'online',
+      meetingLink: json['meetingLink']?.toString(),
+      maxStudents: json['maxStudents'] != null ? _toInt(json['maxStudents']) : null,
     );
   }
 
@@ -222,6 +252,8 @@ abstract final class StudentModelJson {
       attended: json['attended'] == true,
       videoUrl: json['videoUrl']?.toString(),
       hasPdf: json['pdfFileRef'] != null && json['pdfFileRef'].toString().isNotEmpty,
+      pdfFileRef: json['pdfFileRef']?.toString(),
+      content: json['content']?.toString(),
     );
   }
 
@@ -253,6 +285,11 @@ abstract final class StudentModelJson {
       isLive: json['isActive'] == true || json['status']?.toString() == 'live',
       participants: _toInt(json['participantCount']),
       roomName: json['roomName']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'scheduled',
+      roomCode: json['roomCode']?.toString(),
+      maxCapacity: json['maxCapacity'] != null ? _toInt(json['maxCapacity']) : null,
+      description: json['description']?.toString(),
+      scheduledAt: DateTime.tryParse(json['scheduledAt']?.toString() ?? ''),
     );
   }
 
@@ -575,6 +612,32 @@ abstract final class StudentModelJson {
       contestName: json['contestName']?.toString() ?? '',
     );
   }
+
+  static ChatSession chatSessionFromJson(Map<String, dynamic> json) {
+    return ChatSession(
+      id: json['id']?.toString() ?? '',
+      courseId: json['courseId']?.toString(),
+      teacherUserId: json['teacherUserId']?.toString(),
+      studentUserId: json['studentUserId']?.toString(),
+      sessionType: json['sessionType']?.toString() ?? 'teacher_support',
+      status: json['status']?.toString() ?? 'active',
+      teacherName: json['teacherName']?.toString(),
+      teacherAvatar: json['teacherAvatar']?.toString(),
+    );
+  }
+
+  static ChatMessage chatMessageFromJson(Map<String, dynamic> json) {
+    final sender = json['sender'] != null ? asMap(json['sender']) : null;
+    return ChatMessage(
+      id: json['id']?.toString() ?? '',
+      sessionId: json['sessionId']?.toString() ?? '',
+      senderUserId: json['senderUserId']?.toString() ?? sender?['userId']?.toString() ?? '',
+      senderName: sender?['name']?.toString(),
+      senderRole: sender?['role']?.toString(),
+      message: json['message']?.toString() ?? '',
+      sentAt: DateTime.tryParse(json['sentAt']?.toString() ?? json['createdAt']?.toString() ?? ''),
+    );
+  }
 }
 
 class TasksResponse {
@@ -668,3 +731,5 @@ class LiveRoomInfo {
   final int participants;
   final String roomCode;
 }
+
+// ── Response models (kept here for JSON parsing) ─────────────────

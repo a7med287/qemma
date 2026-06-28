@@ -129,6 +129,40 @@ class StudentRepository {
         return StudentModelJson.liveRoomInfoFromJson(asMap(unwrapBody(res.data)));
       }, 'فشل تحميل بيانات الحصة');
 
+  // ── Chat ──────────────────────────────────────────────────────────
+
+  Future<List<ChatSession>> getChatSessions() => _guard(() async {
+        final res = await _dio.get('/chat/sessions');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(StudentModelJson.chatSessionFromJson).toList();
+      }, 'فشل تحميل المحادثات');
+
+  Future<ChatSession> createChatSession({
+    required String teacherUserId,
+    required String courseId,
+  }) =>
+      _guard(() async {
+        final res = await _dio.post('/chat/sessions', data: {
+          'teacherUserId': teacherUserId,
+          'courseId': courseId,
+          'sessionType': 'teacher_support',
+        });
+        return StudentModelJson.chatSessionFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل إنشاء المحادثة');
+
+  Future<List<ChatMessage>> getChatMessages(String sessionId) => _guard(() async {
+        final res = await _dio.get('/chat/sessions/$sessionId/messages');
+        final data = unwrapBody(res.data);
+        return asMapList(data).map(StudentModelJson.chatMessageFromJson).toList();
+      }, 'فشل تحميل الرسائل');
+
+  Future<ChatMessage> sendChatMessage(String sessionId, String message) => _guard(() async {
+        final res = await _dio.post('/chat/sessions/$sessionId/messages', data: {
+          'message': message,
+        });
+        return StudentModelJson.chatMessageFromJson(asMap(unwrapBody(res.data)));
+      }, 'فشل إرسال الرسالة');
+
   Future<List<StudyBook>> getBooks({String? search, String? subject}) => _guard(() async {
         final res = await _dio.get('/books', queryParameters: {
           if (search != null && search.isNotEmpty) 'search': search,
@@ -161,6 +195,15 @@ class StudentRepository {
         final data = unwrapBody(res.data);
         return asMapList(data).map(StudentModelJson.courseLessonFromJson).toList();
       }, 'فشل تحميل الدروس');
+
+  Future<Map<String, dynamic>> getLessonRating(String lessonId) => _guard(() async {
+        final res = await _dio.get('/students/rate/lesson/$lessonId');
+        return asMap(unwrapBody(res.data));
+      }, 'فشل تحميل تقييم الدرس');
+
+  Future<void> rateLesson(String lessonId, int rating) => _guard(() async {
+        await _dio.post('/students/rate/lesson/$lessonId', data: {'rating': rating});
+      }, 'فشل حفظ التقييم');
 
   // ── Contests ──────────────────────────────────────────────────────
 

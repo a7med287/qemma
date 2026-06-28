@@ -10,6 +10,8 @@ class SocketService {
 
   io.Socket? _socket;
   String? _activeChatSessionId;
+  String? _token;
+  String? _userId;
 
   final StreamController<Map<String, dynamic>> _notificationController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -34,8 +36,12 @@ class SocketService {
       _chatTypingController.stream;
 
   bool get isConnected => _socket?.connected ?? false;
+  String? get token => _token;
+  String? get userId => _userId;
 
   void connect(String token, String userId) {
+    _token = token;
+    _userId = userId;
     if (_socket?.connected == true) return;
 
     final socketUrl = kApiBaseUrl.replaceAll(RegExp(r'/api/?$'), '');
