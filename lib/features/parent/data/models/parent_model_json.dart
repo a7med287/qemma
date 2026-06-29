@@ -50,11 +50,8 @@ abstract final class ParentModelJson {
     if (alerts == 0 && dashboard != null) alerts = _toInt(dashboard['behaviorAlerts']);
     if (alerts == 0) alerts = _toInt(json['behaviorAlerts']);
 
-    final rawTasks = json['tasks'] as List? ?? [];
-    final tasks = rawTasks.map((t) {
-      if (t is Map<String, dynamic>) return childTaskFromJson(t);
-      return ChildTask(id: '', title: '');
-    }).toList();
+    final rawTasks = json['tasks'];
+    final tasks = _parseTasks(rawTasks);
 
     final rawNotifications = json['notifications'] as List? ?? [];
     final notifications = rawNotifications.whereType<Map<String, dynamic>>().toList();
@@ -165,6 +162,37 @@ abstract final class ParentModelJson {
     return [];
   }
 
+  static List<ChildTask> _parseTasks(dynamic rawTasks) {
+    if (rawTasks is List) {
+      return rawTasks.map((t) {
+        if (t is Map<String, dynamic>) return childTaskFromJson(t);
+        return ChildTask(id: '', title: '');
+      }).toList();
+    }
+    if (rawTasks is Map) {
+      final pending = rawTasks['pendingAssignments'] as List? ?? [];
+      final tasks = pending
+          .whereType<Map<String, dynamic>>()
+          .map((t) => childTaskFromJson(t))
+          .toList();
+      final exams = rawTasks['pendingExams'] as List? ?? [];
+      for (final e in exams) {
+        if (e is Map<String, dynamic>) {
+          tasks.add(ChildTask(
+            id: e['_id'] ?? e['id'] ?? '',
+            title: e['title'] ?? '',
+            courseTitle: e['courseName'] ?? e['courseTitle'],
+            status: 'upcoming',
+            type: 'exam',
+            dueDate: e['dueDate'] != null ? DateTime.tryParse(e['dueDate']) : null,
+          ));
+        }
+      }
+      return tasks;
+    }
+    return [];
+  }
+
   static ChildTask childTaskFromJson(Map<String, dynamic> json) {
     return ChildTask(
       id: json['_id'] ?? json['id'] ?? '',
@@ -174,6 +202,9 @@ abstract final class ParentModelJson {
       dueDate: json['dueDate'] != null ? DateTime.tryParse(json['dueDate']) : null,
       score: _toDoubleOrNull(json['score']),
       maxScore: _toDoubleOrNull(json['maxScore']),
+      completed: json['completed'] ?? false,
+      type: json['type'] ?? 'assignment',
+      dueLabel: json['dueLabel'],
     );
   }
 

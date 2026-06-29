@@ -102,6 +102,21 @@ class UserModel {
   }
 }
 
+String streamFromSubject(String subject) {
+  const mapping = {
+    'الرياضيات': 'Math',
+    'الفيزياء': 'Physics',
+    'الكيمياء': 'Chemistry',
+    'الأحياء': 'Biology',
+    'اللغة العربية': 'Arabic',
+    'اللغة الإنجليزية': 'English',
+    'الجغرافيا': 'Geography',
+    'التاريخ': 'History',
+    'الإحصاء': 'Statistics',
+  };
+  return mapping[subject] ?? '';
+}
+
 class RegisterRequest {
   final String name;
   final String email;
@@ -111,6 +126,7 @@ class RegisterRequest {
   final String? division;
   final String? year;
   final String? subject;
+  final String? stream;
   final String? teacherName;
   final String? studentUsername;
 
@@ -123,6 +139,7 @@ class RegisterRequest {
     this.division,
     this.year,
     this.subject,
+    this.stream,
     this.teacherName,
     this.studentUsername,
   });
@@ -141,6 +158,7 @@ class RegisterRequest {
     }
     if ((role == UserRole.teacher || role == UserRole.assistantTeacher) && subject != null) {
       map['subject'] = subject;
+      map['stream'] = stream ?? streamFromSubject(subject!);
     }
     if (role == UserRole.assistantTeacher && teacherName != null) {
       map['teacherName'] = teacherName;

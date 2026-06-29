@@ -98,6 +98,9 @@ class ChildTask {
   final DateTime? dueDate;
   final double? score;
   final double? maxScore;
+  final bool completed;
+  final String type;
+  final String? dueLabel;
 
   const ChildTask({
     required this.id,
@@ -107,6 +110,9 @@ class ChildTask {
     this.dueDate,
     this.score,
     this.maxScore,
+    this.completed = false,
+    this.type = 'assignment',
+    this.dueLabel,
   });
 }
 

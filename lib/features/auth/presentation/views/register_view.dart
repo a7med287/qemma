@@ -140,6 +140,7 @@ class _RegisterViewState extends State<RegisterView> {
         division:        _division,
         year:            _year,
         subject:         _subject,
+        stream:          _subject != null ? streamFromSubject(_subject!) : null,
         teacherName:     teacherName,
         studentUsername: studentUsername,
       );
@@ -161,51 +162,53 @@ class _RegisterViewState extends State<RegisterView> {
 
   Future<void> _lookupTeacher() async {
     if (_teacherUsernameCtrl.text.trim().isEmpty) {
-      setState(() => _teacherError = 'يرجى إدخال اسم المستخدم للمدرس');
+      if (mounted) setState(() => _teacherError = 'يرجى إدخال اسم المستخدم للمدرس');
       return;
     }
-    setState(() { _teacherLookupLoading = true; _teacherError = null; _teacherInfo = null; });
+    if (mounted) setState(() { _teacherLookupLoading = true; _teacherError = null; _teacherInfo = null; });
     try {
       final info = await _authService.lookupTeacher(_teacherUsernameCtrl.text.trim());
-      setState(() => _teacherInfo = info);
+      if (mounted) setState(() => _teacherInfo = info);
     } catch (e) {
-      setState(() => _teacherError = 'لم يتم العثور على مدرس بهذا الاسم المميز');
+      if (mounted) setState(() => _teacherError = 'لم يتم العثور على مدرس بهذا الاسم المميز');
     } finally {
-      setState(() => _teacherLookupLoading = false);
+      if (mounted) setState(() => _teacherLookupLoading = false);
     }
   }
 
   Future<void> _sendCodeToTeacher() async {
-    setState(() { _teacherVerifyLoading = true; _teacherError = null; });
+    if (mounted) setState(() { _teacherVerifyLoading = true; _teacherError = null; });
     try {
       await _authService.sendCodeToTeacher(
         teacherUsername: _teacherUsernameCtrl.text.trim(),
         assistantEmail:  _fullEmail,
       );
-      setState(() => _teacherCodeSent = true);
-      buildSnackBar(context, 'تم إرسال الكود للمدرس في الوقت الفعلي! ⚡');
+      if (mounted) {
+        setState(() => _teacherCodeSent = true);
+        buildSnackBar(context, 'تم إرسال الكود للمدرس في الوقت الفعلي! ⚡');
+      }
     } catch (e) {
-      setState(() => _teacherError = 'فشل إرسال الكود');
+      if (mounted) setState(() => _teacherError = 'فشل إرسال الكود');
     } finally {
-      setState(() => _teacherVerifyLoading = false);
+      if (mounted) setState(() => _teacherVerifyLoading = false);
     }
   }
 
   Future<void> _verifyTeacherCode() async {
     if (_teacherCodeCtrl.text.trim().length != 6) {
-      setState(() => _teacherError = 'يرجى إدخال الكود المكون من 6 أرقام');
+      if (mounted) setState(() => _teacherError = 'يرجى إدخال الكود المكون من 6 أرقام');
       return;
     }
-    setState(() { _teacherVerifyLoading = true; _teacherError = null; });
+    if (mounted) setState(() { _teacherVerifyLoading = true; _teacherError = null; });
     try {
       await _authService.verifyTeacherCode(
         teacherUsername: _teacherUsernameCtrl.text.trim(),
         code:            _teacherCodeCtrl.text.trim(),
       );
-      buildSnackBar(context, 'تم التحقق بنجاح! ✅');
+      if (mounted) buildSnackBar(context, 'تم التحقق بنجاح! ✅');
       await _doRegister(teacherName: _teacherUsernameCtrl.text.trim());
     } catch (e) {
-      setState(() => _teacherError = 'الكود غير صحيح أو انتهت صلاحيته');
+      if (mounted) setState(() => _teacherError = 'الكود غير صحيح أو انتهت صلاحيته');
     } finally {
       if (mounted) setState(() => _teacherVerifyLoading = false);
     }
@@ -213,51 +216,53 @@ class _RegisterViewState extends State<RegisterView> {
 
   Future<void> _lookupStudent() async {
     if (_studentUsernameCtrl.text.trim().isEmpty) {
-      setState(() => _parentError = 'يرجى إدخال اسم المستخدم للطالب');
+      if (mounted) setState(() => _parentError = 'يرجى إدخال اسم المستخدم للطالب');
       return;
     }
-    setState(() { _parentLookupLoading = true; _parentError = null; _studentInfo = null; });
+    if (mounted) setState(() { _parentLookupLoading = true; _parentError = null; _studentInfo = null; });
     try {
       final info = await _authService.lookupStudent(_studentUsernameCtrl.text.trim());
-      setState(() => _studentInfo = info);
+      if (mounted) setState(() => _studentInfo = info);
     } catch (e) {
-      setState(() => _parentError = 'لم يتم العثور على طالب بهذا الاسم المميز');
+      if (mounted) setState(() => _parentError = 'لم يتم العثور على طالب بهذا الاسم المميز');
     } finally {
-      setState(() => _parentLookupLoading = false);
+      if (mounted) setState(() => _parentLookupLoading = false);
     }
   }
 
   Future<void> _sendCodeToStudent() async {
-    setState(() { _parentVerifyLoading = true; _parentError = null; });
+    if (mounted) setState(() { _parentVerifyLoading = true; _parentError = null; });
     try {
       await _authService.sendCodeToStudent(
         studentUsername: _studentUsernameCtrl.text.trim(),
         parentEmail:     _fullEmail,
       );
-      setState(() => _parentCodeSent = true);
-      buildSnackBar(context, 'تم إرسال الكود للطالب في الوقت الفعلي! ⚡');
+      if (mounted) {
+        setState(() => _parentCodeSent = true);
+        buildSnackBar(context, 'تم إرسال الكود للطالب في الوقت الفعلي! ⚡');
+      }
     } catch (e) {
-      setState(() => _parentError = 'فشل إرسال الكود');
+      if (mounted) setState(() => _parentError = 'فشل إرسال الكود');
     } finally {
-      setState(() => _parentVerifyLoading = false);
+      if (mounted) setState(() => _parentVerifyLoading = false);
     }
   }
 
   Future<void> _verifyParentCode() async {
     if (_parentCodeCtrl.text.trim().length != 6) {
-      setState(() => _parentError = 'يرجى إدخال الكود المكون من 6 أرقام');
+      if (mounted) setState(() => _parentError = 'يرجى إدخال الكود المكون من 6 أرقام');
       return;
     }
-    setState(() { _parentVerifyLoading = true; _parentError = null; });
+    if (mounted) setState(() { _parentVerifyLoading = true; _parentError = null; });
     try {
       await _authService.verifyParentCode(
         studentUsername: _studentUsernameCtrl.text.trim(),
         code:            _parentCodeCtrl.text.trim(),
       );
-      buildSnackBar(context, 'تم التحقق بنجاح! ✅');
+      if (mounted) buildSnackBar(context, 'تم التحقق بنجاح! ✅');
       await _doRegister(studentUsername: _studentUsernameCtrl.text.trim());
     } catch (e) {
-      setState(() => _parentError = 'الكود غير صحيح أو انتهت صلاحيته');
+      if (mounted) setState(() => _parentError = 'الكود غير صحيح أو انتهت صلاحيته');
     } finally {
       if (mounted) setState(() => _parentVerifyLoading = false);
     }
@@ -310,7 +315,7 @@ class _RegisterViewState extends State<RegisterView> {
                 onSendCodeToTeacher: _sendCodeToTeacher,
                 onVerifyTeacherCode: _verifyTeacherCode,
                 onResendCode: () => setState(() { _teacherCodeSent = false; _teacherCodeCtrl.clear(); }),
-                onCodeChanged: (_) {},
+                onCodeChanged: (_) => setState(() {}),
               ),
               'verify-parent'    => RegisterVerifyParentBody(
                 studentUsernameCtrl: _studentUsernameCtrl,
@@ -325,7 +330,7 @@ class _RegisterViewState extends State<RegisterView> {
                 onSendCodeToStudent: _sendCodeToStudent,
                 onVerifyParentCode: _verifyParentCode,
                 onResendCode: () => setState(() { _parentCodeSent = false; _parentCodeCtrl.clear(); }),
-                onCodeChanged: (_) {},
+                onCodeChanged: (_) => setState(() {}),
               ),
               _                  => const SizedBox(),
             },

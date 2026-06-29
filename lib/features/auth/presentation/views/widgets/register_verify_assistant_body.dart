@@ -129,7 +129,7 @@ class RegisterVerifyAssistantBody extends StatelessWidget {
             onChanged: (v) {
               final digits = v.replaceAll(RegExp(r'\D'), '');
               if (digits != v) teacherCodeCtrl.text = digits;
-              onCodeChanged;
+              onCodeChanged(v);
             },
           ),
           SizedBox(height: 12.h),

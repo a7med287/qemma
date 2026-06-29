@@ -129,7 +129,7 @@ class RegisterVerifyParentBody extends StatelessWidget {
             onChanged: (v) {
               final digits = v.replaceAll(RegExp(r'\D'), '');
               if (digits != v) parentCodeCtrl.text = digits;
-              onCodeChanged;
+              onCodeChanged(v);
             },
           ),
           SizedBox(height: 12.h),

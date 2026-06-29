@@ -134,7 +134,7 @@ class _ChildProgressViewState extends State<ChildProgressView> {
 
   Widget _buildChildCard(ChildSummary child) {
     final pendingAssignments = child.tasks
-        .where((t) => t.status != 'completed' && t.courseTitle != null)
+        .where((t) => !t.completed && t.courseTitle != null)
         .length;
 
     return Padding(

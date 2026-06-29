@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/helpers/build_context_extensions.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_text_styles.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../data/models/parent_models.dart';
@@ -36,6 +37,7 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -43,6 +45,7 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
     try {
       final repo = context.read<ParentRepository>();
       final children = await repo.getChildren();
+
       int activeCourses = 0;
       int pendingAssignments = 0;
       int alerts = 0;
@@ -55,14 +58,13 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
         alerts += child.alerts;
 
         final notifs = child.notifications.take(3);
-        int notifId = 0;
         for (final n in notifs) {
           final type = n['type'] ?? '';
           final title = n['title'] ?? n['message'] ?? '';
           final time = n['createdAt'] ?? n['timestamp'];
           activities.add(
             RecentActivity(
-              id: '${child.id}_notif_$notifId',
+              id: n['_id']?.toString() ?? n['id']?.toString() ?? '${child.id}_notif_${activities.length}',
               type: type == 'exam'
                   ? 'success'
                   : type == 'assignment'
@@ -75,23 +77,20 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
                   : DateTime.now(),
             ),
           );
-          notifId++;
         }
 
         final incompleteTasks =
-            child.tasks.where((t) => t.status != 'completed').take(3);
+            child.tasks.where((t) => !t.completed).take(3);
         for (final t in incompleteTasks) {
-          final isExam = t.status == 'upcoming' ||
-              (t.title.toLowerCase().contains('اختبار') ||
-                  t.title.toLowerCase().contains('امتحان'));
+          final taskType = t.type == 'exam' ? 'exam' : 'assignment';
           events.add(
             UpcomingEvent(
               id: t.id,
               childName: child.name.split(' ').firstOrNull ?? child.name,
-              type: isExam ? 'exam' : 'assignment',
+              type: taskType,
               title: t.title,
               date: t.dueDate ?? DateTime.now(),
-              time: null,
+              time: t.dueLabel,
             ),
           );
         }
@@ -99,6 +98,7 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
 
       activities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
+      if (!mounted) return;
       setState(() {
         _data = ParentDashboardData(
           children: children,
@@ -111,7 +111,8 @@ class _ParentDashboardViewState extends State<ParentDashboardView> {
         );
       });
     } catch (e) {
-      setState(() => _error = 'فشل تحميل البيانات');
+      final msg = e is ServerFailure ? e.message : 'فشل تحميل البيانات';
+      if (mounted) setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
